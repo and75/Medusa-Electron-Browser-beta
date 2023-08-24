@@ -1,2 +1,4 @@
-# medusa-browser-beta
+# Medusa browser beta
 The new old idea of the meta web
+
+
