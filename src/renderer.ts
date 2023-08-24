@@ -34,11 +34,13 @@ import './index.css';
 import './components/tabs-bar';
 import './components/nav-bar';
 import './components/webview';
+import './components/app';
 
 console.log('👋 This message is being logged by "renderer.js", included via webpack');
 
 document.addEventListener("DOMContentLoaded", (event) => {
-
+    
+/*
     const indicator = document.querySelector('.app-indicator');
     const tabActive = document.querySelector('.tabs-wrapper')
     console.log('stocazzo : ', tabActive)
@@ -54,7 +56,8 @@ document.addEventListener("DOMContentLoaded", (event) => {
     webview.addEventListener('dom-ready', () => {
         let title = webview.getTitle();
         let url = webview.getURL();
-        /*webview.openDevTools()*/
+        
         console.log(title, url);
     })
+    */
 });
