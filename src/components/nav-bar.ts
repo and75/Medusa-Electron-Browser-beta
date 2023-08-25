@@ -1,66 +1,105 @@
 import { arrowLeft, arrowRight, arrowRotate, bookmarkSvg, clipboardSvg, clockRotateLeft, slidersSvg } from "./img";
 
+interface NavInerface {
+    title: string | null
+    url: HTMLInputElement | null
+    backIcon: HTMLElement | null
+}
+
+
+
 export class NavBar extends HTMLElement {
+
+    backIcon: HTMLImageElement;
+    forwardIcon: HTMLImageElement;
+    reloadIcon: HTMLImageElement;
+    urlInput: HTMLInputElement;
+    bookmarkIcon: HTMLImageElement;
+    notesIcon: HTMLImageElement;
+    historyIcon: HTMLImageElement;
+    settingsIcon: HTMLImageElement;
+
+
     constructor() {
+
         // Always call super first in constructor
         super();
 
-        // write element functionality in here
         // Create a shadow root
         this.attachShadow({ mode: "open" }); // sets and returns 'this.shadowRoot'
-        
 
         // Create (nested) span elements
         const wrapper = document.createElement("div");
         wrapper.setAttribute("class", "navbar-wrapper");
 
-        //Nav elements
+        //Nav elements wrapper
         const nav = wrapper.appendChild(document.createElement("ul"));
         nav.setAttribute('class', "nav");
 
+        //Back
         const back = nav.appendChild(document.createElement('li'));
-        const backIcon = back.appendChild(document.createElement('img'));
+        const backIcon = document.createElement('img');
         backIcon.setAttribute('src', arrowLeft)
         back.appendChild(backIcon);
+        this.backIcon = backIcon;
 
+        //Forward
         const forward = nav.appendChild(document.createElement('li'));
-        const forwardIcon = forward.appendChild(document.createElement('img'));
-        forwardIcon.setAttribute('src', arrowRight)
+        const forwardIcon = document.createElement('img');
+        forwardIcon.setAttribute('src', arrowRight);
         forward.appendChild(forwardIcon);
+        this.forwardIcon = forwardIcon;
 
+        //Reload
         const reload = nav.appendChild(document.createElement('li'));
-        const reloadIcon = reload.appendChild(document.createElement('img'));
-        reloadIcon.setAttribute('src', arrowRotate)
+        const reloadIcon = document.createElement('img');
+        reloadIcon.setAttribute('src', arrowRotate);
         reload.appendChild(reloadIcon);
+        this.reloadIcon = reloadIcon;
 
+        //Input Url
         const form = wrapper.appendChild(document.createElement("form"));
-        const input = form.appendChild(document.createElement('input'));
-        input.setAttribute("type", "text");
-        input.setAttribute('placeholder', 'Navigate to...');
-        
-        //App Action menu
+        const urlInput = document.createElement('input');
+        urlInput.setAttribute("type", "text");
+        urlInput.setAttribute('placeholder', 'Navigate to...');
+        form.appendChild(urlInput)
+        this.urlInput = urlInput;
+
+
+        //APP ACTION MENU//
+        //Container
         const appMenu = wrapper.appendChild(document.createElement("ul"));
         appMenu.setAttribute('class', "nav app-menu");
 
-        const bookmark = appMenu.appendChild(document.createElement('li'));
-        const bookmarkIcon = bookmark.appendChild(document.createElement('img'));
-        bookmarkIcon.setAttribute('src', bookmarkSvg)
-
-        const notes = appMenu.appendChild(document.createElement('li'));
-        const notesIcon = notes.appendChild(document.createElement('img'));
-        notesIcon.setAttribute('src', clipboardSvg)
-   
-
+        //HistoryIcon
         const history = appMenu.appendChild(document.createElement('li'));
-        const historyIcon = history.appendChild(document.createElement('img'));
-        historyIcon.setAttribute('src', clockRotateLeft)
+        const historyIcon = document.createElement('img');
+        historyIcon.setAttribute('src', clockRotateLeft);
+        history.appendChild(historyIcon);
+        this.historyIcon = historyIcon;
 
+        //BookMark
+        const bookmark = appMenu.appendChild(document.createElement('li'));
+        const bookmarkIcon = document.createElement('img');
+        bookmarkIcon.setAttribute('src', bookmarkSvg)
+        bookmark.appendChild(bookmarkIcon);
+        this.bookmarkIcon = bookmarkIcon;
 
+        //NotesIcon
+        const notes = appMenu.appendChild(document.createElement('li'));
+        const notesIcon = document.createElement('img');
+        notesIcon.setAttribute('src', clipboardSvg)
+        notes.appendChild(notesIcon);
+        this.notesIcon = notesIcon;
+
+        //SettingsIcon
         const settings = appMenu.appendChild(document.createElement('li'));
-        const settingsIcon = settings.appendChild(document.createElement('img'));
+        const settingsIcon = document.createElement('img');
         settingsIcon.setAttribute('src', slidersSvg)
+        settings.appendChild(settingsIcon);
+        this.settingsIcon = settingsIcon;
 
-        
+
         // Create some CSS to apply to the shadow DOM
         const style = document.createElement("style");
         style.textContent = `
@@ -121,5 +160,15 @@ export class NavBar extends HTMLElement {
         this.shadowRoot.append(style, wrapper);
 
     }
+
+    connectedCallback() {
+        console.log('Nav-bar is connected!')
+        window.electron.ipcRenderer.on('ipc-example', (arg: any) => {
+            // eslint-disable-next-line no-console
+            console.log('TabsBar', arg);
+            this.urlInput.value = arg.url;
+        });
+    }
+
 }
 customElements.define("nav-bar", NavBar);
