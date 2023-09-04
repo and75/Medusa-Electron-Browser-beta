@@ -1,12 +1,13 @@
+/**
+* Medusa browser beta
+* @component NavBar
+* @description This component manage the wrapper of Navigation bar
+* @author Andrea Porcella
+* @copyright Andrea Porcella / Bellville-system 2023
+*/
+
 import { arrowLeft, arrowRight, arrowRotate, bookmarkSvg, clipboardSvg, clockRotateLeft, slidersSvg } from "./img";
-
-interface NavInerface {
-    title: string | null
-    url: HTMLInputElement | null
-    backIcon: HTMLElement | null
-}
-
-
+import { Tab } from './../model';
 
 export class NavBar extends HTMLElement {
 
@@ -18,6 +19,8 @@ export class NavBar extends HTMLElement {
     notesIcon: HTMLImageElement;
     historyIcon: HTMLImageElement;
     settingsIcon: HTMLImageElement;
+    currentTab:Tab;
+    currentTabIndex:number;
 
 
     constructor() {
@@ -107,7 +110,6 @@ export class NavBar extends HTMLElement {
                 display:flex;
                 padding: 15px 10px;
                 background: #fff;
-                border-bottom: 1px solid #ccc;
                 align-item:center;
                 gap:10px
             }
@@ -145,8 +147,7 @@ export class NavBar extends HTMLElement {
                 height:20px;
                 opacity:0.75;
             }
-            .navbar-wrapper ul.nav.app-menu li{
-                background: #e4c6ea;  
+            .navbar-wrapper ul.nav.app-menu li{ 
                 margin-right: 0px;
                 margin-left: 20px;
             }
@@ -161,12 +162,23 @@ export class NavBar extends HTMLElement {
 
     }
 
+    private initNavigation(){
+        this.urlInput.value = this.currentTab.current.url;
+    }
+
     connectedCallback() {
-        console.log('Nav-bar is connected!')
-        window.electron.ipcRenderer.on('ipc-example', (arg: any) => {
+        //console.log('Nav-bar is connected!')
+        window.electron.ipcRenderer.on('ipc-get-default', (arg: any) => {
             // eslint-disable-next-line no-console
-            console.log('TabsBar', arg);
-            this.urlInput.value = arg.url;
+            //console.log('Nav-Bar', arg);
+            this.currentTabIndex = arg.current;
+            this.currentTab = arg.tabs[this.currentTabIndex];
+            this.initNavigation();
+        });
+        window.electron.ipcRenderer.on('ipc-toogle-tab-active', (arg: any) => {
+            // eslint-disable-next-line no-console
+            //console.log('ipc-toogle-tab-active', Date.now(), arg);
+            this.urlInput.value = arg.current.url
         });
     }
 

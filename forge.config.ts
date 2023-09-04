@@ -16,7 +16,6 @@ const config: ForgeConfig = {
   rebuildConfig: {},
   makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin']), new MakerRpm({}), new MakerDeb({})],
   plugins: [
-    new AutoUnpackNativesPlugin({}),
     new WebpackPlugin({
       mainConfig,
       renderer: {
@@ -30,6 +29,14 @@ const config: ForgeConfig = {
               js: './src/preload.ts',
             },
           },
+          {
+            html: '',
+            js: '',
+            name: 'webview',
+            preload: {
+              js: './src/webview-preload.ts',
+            },
+          }
         ],
       },
     }),

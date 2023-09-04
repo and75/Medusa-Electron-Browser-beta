@@ -1,38 +1,74 @@
+import { WebviewTag } from "electron";
+import { Tab, WebView } from '../model';
 
-export class AppWebView extends HTMLElement {
+export class WebViewElement extends HTMLElement {
 
-    constructor() {
-        // Always call super first in constructor
+    id: string;
+    tabId : string;
+    time:number;
+    isReady: boolean;
+    isActive: boolean;
+    isLoaded: boolean;
+    cache: string | null ;
+    element: WebviewTag | null;
+
+
+    constructor(options: Tab) {
+
         super();
 
-        // calling IPC exposed from preload script
-        window.electron.ipcRenderer.on('ipc-example', (arg) => {
-            // eslint-disable-next-line no-console
-            console.log('AppWebView', arg);
-        });
+        this.id = "webview-tab-"+options.id;
+        this.tabId = options.id;
+        this.time = options.time;
+        this.isReady = options.isReady;
+        this.isActive = options.isActive;
+        this.isLoaded = options.isLoaded;
 
-        // write element functionality in here
-        // Create a shadow root
-        this.attachShadow({ mode: "open" }); // sets and returns 'this.shadowRoot'
+        this.initWebview();
+    }
 
-        // Create (nested) span elements
-        const wrapper = document.createElement("webview");
-
-        wrapper.setAttribute('src', "https://www.google.com");
-        wrapper.setAttribute('style', "display:inline-flex; width:100%; height:100%");
-
-        // attach the created elements to the shadow DOM
-        this.shadowRoot.append(wrapper);
+    private initWebview() {
 
     }
 
-    connectedCallback() {
-        console.log('App-webview is connected!')
+    private toogleActive(arg: any) {
+
     }
 
-    attributeChangedCallback(attrName: any, oldVal: any, newVal: any) {
-        console.log('App-webview attributeChangedCallback!', attrName, oldVal, newVal);
+    private handleTabClick(event: any) {
+        let target = event[0];
+        if (target.classList.contains('close-tab')) {
+            this.handleCloseTab();
+        }
+        else {
+            this.handleActiveTab();
+        }
     }
-    
+
+    private handleActiveTab() {
+        if (this.isActive === false) {
+            window.electron.ipcRenderer.sendMessage('ipc-toogle-tab-active', this.getTabStatus());
+        }
+    }
+
+    private handleCloseTab() {
+        //console.log('handlecloseTab');
+        window.electron.ipcRenderer.sendMessage('ipc-close-tab', this.getTabStatus());
+    }
+
+    getTab(){
+        
+    }
+
+    getTabStatus() {
+        
+    }
+
+    getTabElement() {
+        return this.element
+    }
+
+    setTabStatus(tab:Tab) {
+
+    }
 }
-customElements.define("app-webview", AppWebView);

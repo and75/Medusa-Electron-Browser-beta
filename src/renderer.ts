@@ -33,8 +33,8 @@ import { WebviewTag } from 'electron';
 import './index.css';
 import './components/tabs-bar';
 import './components/nav-bar';
-import './components/webview';
+import './components/webview-wrapper';
 import './components/app-root';
 
-console.log('👋 This message is being logged by "renderer.js", included via webpack');
+//console.log('👋 This message is being logged by "renderer.js", included via webpack');
 

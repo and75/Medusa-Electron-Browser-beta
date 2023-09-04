@@ -1,6 +1,14 @@
-import { TabsBar } from "./tabs-bar";
+/**
+ * Medusa browser beta
+ * @component TabsBarWrapper
+ * @description This component manage the wrapper of Tab
+ * @author Andrea Porcella
+ * @copyright Andrea Porcella / Bellville-system 2023
+ */
+
+import { TabsBarWrapper } from "./tabs-bar";
 import { NavBar } from "./nav-bar";
-import { AppWebView } from "./webview";
+import { AppWebView } from "./webview-wrapper";
 
 export class AppRoot extends HTMLElement {
 
@@ -8,16 +16,7 @@ export class AppRoot extends HTMLElement {
 
     super();
 
-    console.log(window.electron);
-
-    // calling IPC exposed from preload script
-    window.electron.ipcRenderer.on('ipc-example', (arg) => {
-      // eslint-disable-next-line no-console
-      console.log(arg);
-    });
-    window.electron.ipcRenderer.sendMessage('ipc-example', ['app-root']);
-
-
+    //console.log(window.electron);
 
     this.attachShadow({ mode: "open" }); // sets and returns 'this.shadowRoot'
 
@@ -27,18 +26,12 @@ export class AppRoot extends HTMLElement {
 
     const appHeader = wrapper.appendChild(document.createElement('div'))
     appHeader.setAttribute('class', 'app-header');
-
-
-    const tabs = new TabsBar();
-    appHeader.appendChild(new TabsBar());
-    const nav = appHeader.appendChild(new NavBar());
-
-    tabs.setAttribute('title', 'pippo')
+    appHeader.appendChild(new TabsBarWrapper());
+    appHeader.appendChild(new NavBar());
 
     const appWebView = wrapper.appendChild(document.createElement('div'))
     appWebView.setAttribute('class', 'app-webview');
-
-    const webwiew = appWebView.appendChild(new AppWebView());
+    appWebView.appendChild(new AppWebView());
 
     // Create some CSS to apply to the shadow DOM
     const style = document.createElement("style");
@@ -47,7 +40,7 @@ export class AppRoot extends HTMLElement {
         .app-wrapper{
           display: grid;
           grid-template-columns:  auto;
-          grid-template-rows: 112px calc(100vh - 112px);
+          grid-template-rows: 110px calc(100vh - 110px);
           grid-template-areas:
           "header"
           "webview";
@@ -59,7 +52,12 @@ export class AppRoot extends HTMLElement {
         }
         .app-webview{
           grid-area: webview;
-          justify-self: stretch;
+          justify-self: stretch;     
+        }
+        app-webview{
+          display:block;
+          height:100%;
+          position:relative;
         }
             
         `;
@@ -67,11 +65,13 @@ export class AppRoot extends HTMLElement {
   }
 
   connectedCallback() {
-    console.log('App-root is connected!')
+    //console.log('App-root is connected!')
+    // calling IPC exposed from preload script
+    window.electron.ipcRenderer.sendMessage('ipc-get-default', ['app-root']);
   }
 
-  attributeChangedCallback(attrName:any, oldVal:any, newVal:any) {
-    console.log('App-root attributeChangedCallback!', attrName, oldVal, newVal);
+  attributeChangedCallback(attrName: any, oldVal: any, newVal: any) {
+    //console.log('App-root attributeChangedCallback!', attrName, oldVal, newVal);
   }
 
 }

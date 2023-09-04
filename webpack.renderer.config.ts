@@ -26,6 +26,7 @@ rules.push({
 });
 
 export const rendererConfig: Configuration = {
+  target: 'web',
   module: {
     rules,
   },
