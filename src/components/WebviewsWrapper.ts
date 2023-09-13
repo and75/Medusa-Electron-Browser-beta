@@ -16,7 +16,7 @@ export class WebviewsWrapper extends HTMLElement {
     wrapper: WebviewTag;
     currentTabElement: TabElement
     webviews: WebviewTag[]
-    loader:HTMLDivElement
+    loader: HTMLDivElement
 
     constructor() {
         // Always call super first in constructor
@@ -109,60 +109,82 @@ export class WebviewsWrapper extends HTMLElement {
         this.shadowRoot.append(style, loader);
     }
 
-    addWebView(tab:TabElement){
+    addWebView(tab: TabElement) {
         this.initWebview(tab);
         this.goTo(tab);
     }
 
+    _existWebView(id: string) {
+        if (this.webviews.length > 0) {
+            return this.webviews.find(el => el.id == id);
+        }
+    }
+
+    _reset(){
+        return this.webviews.map((el) => {
+            el.setAttribute('active', 'false');
+        })
+    }
+
     initWebview(tab: TabElement) {
 
-        console.log('initTabElementview TabElement : ', tab)
-        const wv = document.createElement("webview");
+        console.log('initTabElementview TabElement : ', tab, this._existWebView('webview-tab-' + tab.id))
+        this._reset();
+        
+        const existWebView:WebviewTag | undefined = this._existWebView('webview-tab-' + tab.id);
+        
+        if (!existWebView) {
 
-        if (tab.isActive) {
-            wv.setAttribute('active', 'true');
-            wv.setAttribute('src', tab.current.url);
+            const wv = document.createElement("webview");
+
+            if (tab.isActive) {
+                wv.setAttribute('active', 'true');
+                wv.setAttribute('src', tab.current.url);
+            } else {
+                wv.setAttribute('active', 'false');
+            }
+
+            wv.setAttribute('id', 'webview-tab-' + tab.id);
+            wv.setAttribute('tab-id', tab.id.toString());
+            wv.setAttribute('preload', 'file://' + window.electron.webviewpreloadPath);
+
+            this.shadowRoot.append(wv);
+
+            wv.addEventListener('dom-ready', (e) => {
+                //console.log('dom-ready', e);
+            })
+            wv.addEventListener('did-start-loading', (e) => {
+                //console.log('did-start-loading', e);
+                this.loader.setAttribute('class', 'loader active')
+            })
+            wv.addEventListener('did-stop-loading', (e) => {
+                //console.log('did-stop-loading', e);
+                //console.log(wv.getURL());
+                this.loader.setAttribute('class', 'loader')
+            })
+            wv.addEventListener('page-title-updated', (e) => {
+                //console.log('page-title-updated', e)
+            })
+            wv.addEventListener('page-favicon-updated', (e) => {
+                //console.log('page-favicon-updated', e)
+            })
+            wv.addEventListener('console-message', (e) => {
+                //console.log('Guest page logged a message:', e.message)
+            })
+
+            this.webviews.push(wv);
         } else {
-            wv.setAttribute('active', 'false');
+            existWebView.setAttribute('active', 'true');
         }
-       
-        wv.setAttribute('id', 'webview-tab-' + tab.id);
-        wv.setAttribute('tab-id', tab.id.toString());
-        wv.setAttribute('preload', 'file://' + window.electron.webviewpreloadPath);
 
-        this.shadowRoot.append(wv);
 
-        wv.addEventListener('dom-ready', (e) => {
-            //console.log('dom-ready', e);
-        })
-        wv.addEventListener('did-start-loading', (e) => {
-            //console.log('did-start-loading', e);
-            this.loader.setAttribute('class', 'loader active')
-        })
-        wv.addEventListener('did-stop-loading', (e) => {
-            //console.log('did-stop-loading', e);
-            //console.log(wv.getURL());
-            this.loader.setAttribute('class', 'loader')
-        })
-        wv.addEventListener('page-title-updated', (e) => {
-            //console.log('page-title-updated', e)
-        })
-        wv.addEventListener('page-favicon-updated', (e) => {
-            //console.log('page-favicon-updated', e)
-        })
-        wv.addEventListener('console-message', (e) => {
-            //console.log('Guest page logged a message:', e.message)
-        })
-
-        this.webviews.push(wv);
     }
 
     goTo(arg: any) {
         console.log('WebView GoTO : ', arg)
-        const wv = this.webviews.find((el)=>{
+        const wv = this.webviews.find((el) => {
             let TabElementId = el.getAttribute('tab-id');
-            console.log('webviews.find', TabElementId)
-            return TabElementId ==  arg.id
+            return TabElementId == arg.id
         });
         this.webviews.map((el) => {
             el.setAttribute('active', 'false');
@@ -182,13 +204,13 @@ export class WebviewsWrapper extends HTMLElement {
 
     connectedCallback() {
         console.log('Webview is connected!')
-        window.electron.ipcRenderer.on('ipc-set-active-tab', (arg: TabsGroupElement) => {
+        window.electron.ipcRenderer.on('ipc-set-active-tab', (arg: TabElement) => {
             console.log('Webview ipc-set-active-tab', Date.now(), arg);
             this.initWebview(arg);
         });
         window.electron.ipcRenderer.on('ipc-set-new-tab', (arg: any) => {
-           console.log('Webview ipc-set-new-tab', Date.now(), arg);
-           //this.addWebView(arg);
+            console.log('Webview ipc-set-new-tab', Date.now(), arg);
+            //this.addWebView(arg);
         })
         window.electron.ipcRenderer.on('ipc-toogle-tab-active', (arg: any) => {
             console.log('Webview ipc-toogle-tab-active', Date.now(), arg);
