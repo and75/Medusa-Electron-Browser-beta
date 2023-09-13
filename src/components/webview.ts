@@ -1,7 +1,7 @@
 import { WebviewTag } from "electron";
-import { Tab, WebView } from '../model';
+import { TabElement, WebViewElement } from '../model';
 
-export class WebViewElement extends HTMLElement {
+export class WebView extends HTMLElement {
 
     id: string;
     tabId : string;
@@ -13,7 +13,7 @@ export class WebViewElement extends HTMLElement {
     element: WebviewTag | null;
 
 
-    constructor(options: Tab) {
+    constructor(options: TabElement) {
 
         super();
 
@@ -68,7 +68,7 @@ export class WebViewElement extends HTMLElement {
         return this.element
     }
 
-    setTabStatus(tab:Tab) {
+    setTabStatus(tab:TabElement) {
 
     }
 }

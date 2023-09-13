@@ -1,14 +1,14 @@
 /**
  * Medusa browser beta
- * @component TabsBarWrapper
- * @description This component manage the wrapper of Tab
+ * @component AppRoot
+ * @description This component manage the application wrapper
  * @author Andrea Porcella
  * @copyright Andrea Porcella / Bellville-system 2023
  */
 
-import { TabsBarWrapper } from "./tabs-bar";
-import { NavBar } from "./nav-bar";
-import { AppWebView } from "./webview-wrapper";
+import { TabsGroupWrapper } from "./TabsGroupWrapper";
+import { ActionBarWrapper } from "./ActionBarWrapper";
+import { WebviewsWrapper } from "./WebviewsWrapper";
 
 export class AppRoot extends HTMLElement {
 
@@ -26,12 +26,12 @@ export class AppRoot extends HTMLElement {
 
     const appHeader = wrapper.appendChild(document.createElement('div'))
     appHeader.setAttribute('class', 'app-header');
-    appHeader.appendChild(new TabsBarWrapper());
-    appHeader.appendChild(new NavBar());
+    appHeader.appendChild(new TabsGroupWrapper());
+    appHeader.appendChild(new ActionBarWrapper());
 
     const appWebView = wrapper.appendChild(document.createElement('div'))
     appWebView.setAttribute('class', 'app-webview');
-    appWebView.appendChild(new AppWebView());
+    appWebView.appendChild(new WebviewsWrapper());
 
     // Create some CSS to apply to the shadow DOM
     const style = document.createElement("style");
@@ -65,7 +65,7 @@ export class AppRoot extends HTMLElement {
   }
 
   connectedCallback() {
-    //console.log('App-root is connected!')
+    console.log('App-root is connected!')
     // calling IPC exposed from preload script
     window.electron.ipcRenderer.sendMessage('ipc-get-default', ['app-root']);
   }

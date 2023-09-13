@@ -6,10 +6,10 @@
 * @copyright Andrea Porcella / Bellville-system 2023
 */
 
-import { arrowLeft, arrowRight, arrowRotate, bookmarkSvg, clipboardSvg, clockRotateLeft, slidersSvg } from "./img";
-import { Tab } from './../model';
+import { arrowLeft, arrowRight, arrowRotate, bookmarkSvg, clipboardSvg, clockRotateLeft, slidersSvg } from "./Img";
+import { TabElement } from '../model';
 
-export class NavBar extends HTMLElement {
+export class ActionBarWrapper extends HTMLElement {
 
     backIcon: HTMLImageElement;
     forwardIcon: HTMLImageElement;
@@ -19,7 +19,7 @@ export class NavBar extends HTMLElement {
     notesIcon: HTMLImageElement;
     historyIcon: HTMLImageElement;
     settingsIcon: HTMLImageElement;
-    currentTab:Tab;
+    currentTab:TabElement;
     currentTabIndex:number;
 
 
@@ -167,13 +167,11 @@ export class NavBar extends HTMLElement {
     }
 
     connectedCallback() {
-        //console.log('Nav-bar is connected!')
-        window.electron.ipcRenderer.on('ipc-get-default', (arg: any) => {
+        console.log('Nav-bar is connected!')
+        window.electron.ipcRenderer.on('ipc-set-active-tab', (arg: any) => {
             // eslint-disable-next-line no-console
-            //console.log('Nav-Bar', arg);
-            this.currentTabIndex = arg.current;
-            this.currentTab = arg.tabs[this.currentTabIndex];
-            this.initNavigation();
+            console.log('Nav-Bar ipc-set-active-tab', arg);
+            this.urlInput.value = arg.current.url
         });
         window.electron.ipcRenderer.on('ipc-toogle-tab-active', (arg: any) => {
             // eslint-disable-next-line no-console
@@ -183,4 +181,4 @@ export class NavBar extends HTMLElement {
     }
 
 }
-customElements.define("nav-bar", NavBar);
+customElements.define("nav-bar", ActionBarWrapper);

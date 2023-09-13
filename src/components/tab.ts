@@ -1,14 +1,15 @@
 
-import { globeSvg, xmarkSvg } from "./img";
-import { TabElement, HistoryElement, TabsGroupElement} from './../model';
-import { on, emit } from './../core'
+import { globeSvg, xmarkSvg } from "./Img";
+import { TabElement, HistoryElement} from '../model';
+import { on, emit, EventManager } from '../core'
 
 export class Tab extends EventTarget {
-
-    id: string
+    eventManager:EventManager
+    id: number
+    groupId:number
     time:number
+    isActive : boolean;
     isReady: boolean;
-    isActive: boolean
     isLoaded: boolean
     current: HistoryElement
     history: HistoryElement[]
@@ -22,51 +23,49 @@ export class Tab extends EventTarget {
 
     listeners: any;
 
+
+    
     constructor(options: TabElement) {
         super();
+        this.eventManager = new EventManager();
 
         this.id = options.id;
         this.time = options.time;
         this.isReady = options.isReady;
         this.isLoaded = options.isLoaded;
-        this.isActive = options.isActive;
         this.title = options.current.title;
         this.url = options.current.url;
         this.current = options.current;
+        this.groupId = options.groupId;
         this.history = options.history;
-
+        this.isActive = options.isActive;
         this.initTab();
+        
+        if(this.isActive){
+            window.electron.ipcRenderer.sendMessage('ipc-set-active-tab', this.getTabStatus());
+        }
 
     }
 
-    emit(type: string, ...args: any[]) {
-        return emit(this, type, args);
-    }
-
-    on(type: string, fn: (...detail: any[]) => void) {
-        return on(this, type, fn);
-    }
-
-    once(type: string, fn: (detail: string) => void) {
-        return on(this, type, fn, { once: true });
-    }
 
     private initTab() {
 
         const liElement = document.createElement('li');
-        liElement.setAttribute("id", this.id);
-        liElement.setAttribute("tabindex", this.id);
+        liElement.setAttribute("id", this.id.toString());
+        liElement.setAttribute("tabindex", this.id.toString());
+        liElement.setAttribute("class", "item");
+        if(this.isActive){
+            liElement.classList.add('active')
+        }
         this.element = liElement;
         
-        if (this.isActive) {
-            this.element.setAttribute("class", "item active");
-        } else {
-            this.element.setAttribute("class", "item");
-        }
-
         this.element.onclick = (event) => {
             this.handleTabClick(event.composedPath());
         };
+
+        this.element.addEventListener('toogle-tab-active', (e)=>{
+            console.log('toogle-tab-active', e);
+        })
 
         //FavIcon
         const favIcon = document.createElement('img');
@@ -88,22 +87,21 @@ export class Tab extends EventTarget {
         closeIcon.setAttribute('src', xmarkSvg);
         liElement.appendChild(closeIcon);
         this.closeIcon = closeIcon
-
-
+        
     }
 
     closeTab(tabsList:HTMLUListElement){
-        window.electron.ipcRenderer.removeListener('ipc-toogle-tab-active', this.listeners);
         tabsList.removeChild(this.element);
     }
 
     toogleActive(arg: any) {
         if (this.id != arg.id) {
             this.isActive = false;
-            this.element.setAttribute("class", "item");
+            this.element.classList.remove("active");
         } else {
             this.isActive = true;
-            this.element.setAttribute("class", "item active");
+            this.element.classList.add("active");
+            window.electron.ipcRenderer.sendMessage('ipc-set-active-tab', this.getTabStatus());
         }
     }
 
@@ -118,28 +116,13 @@ export class Tab extends EventTarget {
     }
 
     private handleActiveTab() {
-        if (this.isActive === false) {
-            //this.emit('toogle-active-tab', this.getTabStatus())
+        if (this.isActive === false){
             window.electron.ipcRenderer.sendMessage('ipc-toogle-tab-active', this.getTabStatus());
         }
     }
 
     private handleCloseTab() {
-        //console.log('handlecloseTab');
         window.electron.ipcRenderer.sendMessage('ipc-close-tab', this.getTabStatus());
-    }
-
-    getTab(){
-        let tab = {
-            id: this.id,
-            time:this.time,
-            isReady: this.isReady,
-            isActive: this.isActive,
-            isLoaded: this.isLoaded,
-            current: this.current,
-            history: this.history,
-        }
-        return tab;
     }
 
     getTabStatus() {
@@ -156,9 +139,5 @@ export class Tab extends EventTarget {
 
     getTabElement() {
         return this.element
-    }
-
-    setTabStatus(tab:Tab) {
-
     }
 }

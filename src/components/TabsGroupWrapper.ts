@@ -1,42 +1,20 @@
 /**
  * Medusa browser beta
- * @component TabsBar
- * @description This component manage the wrapper of Tab
+ * @component TabsGroupWrapper
+ * @description This component manage the wrapper of TabsGroups
  * @author Andrea Porcella
  * @copyright Andrea Porcella / Bellville-system 2023
  */
 
-import { plusSvg } from "./img";
-import { TabElement, TabsBarWrapperElement, TabsGroupElement } from './../model';
-import { Tab } from "./tab";
-import { on, emit } from './../core'
+import { plusSvg } from "./Img";
+import { TabElement, TabsGroupElement } from '../model';
+import { Tab } from "./Tab";
+import { on, emit } from '../core'
 
-class TabsGroupsElement extends EventTarget {
-
-    time: number
-    title : string
-    isActive: boolean
-    tabs: TabElement[]
-    element : HTMLUListElement;
-    wrapper : HTMLDivElement;
-
-    constructor(options:TabsGroupElement){
-        
-        super();
-        
-        this.time =  options.time;
-        this.title = options.title;
-        this.isActive =  options.isActive;
-        this.tabs = options.tabs;
-
-    }
-
-}
-export class TabsBarWrapper extends HTMLElement {
+export class TabsGroupWrapper extends HTMLElement {
 
     time: number
     isReady: boolean
-    current: number
     tabsWrapper: HTMLDivElement
     tabsList: HTMLUListElement
     tabs: TabElement[]
@@ -55,6 +33,23 @@ export class TabsBarWrapper extends HTMLElement {
 
         this.createElement();
 
+   
+        this.addEventListener('toogle-tab-active', (e)=>{
+            console.log('toogle-tab-active', e);
+        })
+
+    }
+    
+    emit(type: string, ...args: any[]) {
+        return emit(this, type, args);
+    }
+
+    on(type: string, fn: (...detail: any[]) => void) {
+        return on(this, type, fn);
+    }
+
+    once(type: string, fn: (detail: string) => void) {
+        return on(this, type, fn, { once: true });
     }
 
     createElement() {
@@ -65,18 +60,9 @@ export class TabsBarWrapper extends HTMLElement {
         // Create wrapper and first tab
         const tabsWrapper = document.createElement("div");
         tabsWrapper.setAttribute("class", "tabs-wrapper");
-        const tabsList = tabsWrapper.appendChild(document.createElement("ul"));
         this.tabsWrapper = tabsWrapper;
-        this.tabsList = tabsList;
 
-        //Add new tab
-        const buttonNewTab = tabsWrapper.appendChild(document.createElement('div'));
-        buttonNewTab.setAttribute("class", "new-tab");
-        const newIcon = document.createElement('img');
-        newIcon.setAttribute("class", "favicon plus");
-        newIcon.setAttribute('src', plusSvg);
-        buttonNewTab.appendChild(newIcon);
-        buttonNewTab.addEventListener('click', this.handleNewTab.bind(this), false)
+        
 
         // Create some CSS to apply to the shadow DOM
         const style = document.createElement("style");
@@ -88,12 +74,36 @@ export class TabsBarWrapper extends HTMLElement {
                 display: flex;
                 gap: 10px;
                 align-items:center;
+                height: 41px;
+            }
+            .tabs-wrapper .group-wrapper{
+                display:flex;
+                align-items:center;
+                gap: 5px;
+            }
+            .tabs-wrapper .group-label{
+                flex: auto;
+                max-width: 77px;
+                overflow: hidden;
+                padding: 8px 10px;
+                border-radius: 5px;
+                color: #fff;
+                font-size: 10px;
+                text-align: start;
+                font-weight: bold;
+                white-space: nowrap;
+                text-overflow: ellipsis; 
+                text-transform: uppercase;
+                cursor: pointer;
             }
             .tabs-wrapper ul{
-                display:flex;
+                display:none;
                 list-style-type: none;
                 margin: 0;
                 padding: 0;
+            }
+            .tabs-wrapper .group-wrapper.open ul{
+                display:flex
             }
             .tabs-wrapper ul li{
                 flex: 1;
@@ -175,24 +185,58 @@ export class TabsBarWrapper extends HTMLElement {
 
     }
 
-    emit(type: string, ...args: any[]) {
-        return emit(this, type, args);
+    private generateRandomColor(){
+        let maxVal = 0xFFFFFF; // 16777215
+        let randomNumber = Math.random() * maxVal; 
+        randomNumber = Math.floor(randomNumber);
+        let randomString = randomNumber.toString(16);
+        let randColor = randomString.padStart(6, randomString);   
+        return `#${randColor.toUpperCase()}`
     }
 
-    on(type: string, fn: (...detail: any[]) => void) {
-        return on(this, type, fn);
+    private toogleOpenGroup(event:any){
+        let target = event[0];
+        target.parentElement.classList.toggle('open');
     }
 
-    once(type: string, fn: (detail: string) => void) {
-        return on(this, type, fn, { once: true });
-    }
+    private initTabGroups(arg:TabsGroupElement[]){
+        arg.map((el) => {
+     
+            const groupWrapper = document.createElement('div');
+            groupWrapper.setAttribute("class", "group-wrapper  open");
+            groupWrapper.setAttribute("id", "group-"+el.id);
+            
+            const groupLabel = document.createElement('div');
+            groupLabel.setAttribute("class", "group-label");
+            groupLabel.setAttribute("style", "background-color:"+this.generateRandomColor());
+            groupLabel.innerText=el.title;
+            groupWrapper.appendChild(groupLabel);
+            groupLabel.onclick = (event) => {
+                this.toogleOpenGroup(event.composedPath());
+            };
+    
+            const uList = document.createElement("ul");
+            uList.setAttribute("class", "tabs-list");
+            const tabsList = groupWrapper.appendChild(uList);
 
-    private initTabGroups(arg:TabsGroupElement){
-        arg.tabs.map((el) => {
-            const newTab = this.initTab(el);
-            this.tabsList.append(newTab.getTabElement());
-            this.tabs.push(newTab);
+            el.tabs.map((t)=>{
+                const newTab = this.initTab(t);
+                tabsList.append(newTab.getTabElement());
+                this.tabs.push(newTab);
+            })
+
+            this.tabsWrapper.appendChild(groupWrapper);
+
         })
+
+        //Add new tab
+        const buttonNewTab = this.tabsWrapper.appendChild(document.createElement('div'));
+        buttonNewTab.setAttribute("class", "new-tab");
+        const newIcon = document.createElement('img');
+        newIcon.setAttribute("class", "favicon plus");
+        newIcon.setAttribute('src', plusSvg);
+        buttonNewTab.appendChild(newIcon);
+        buttonNewTab.addEventListener('click', this.handleNewTab.bind(this), false)
     }
 
     private initNewTab(arg:TabElement){
@@ -238,7 +282,7 @@ export class TabsBarWrapper extends HTMLElement {
                 else {
                     nextTab = this.tabs[find.index + 1]
                 }
-                this.toogleActive(nextTab);
+                window.electron.ipcRenderer.sendMessage('ipc-toogle-tab-active', nextTab.getTabStatus());
             }
         }
     }
@@ -248,22 +292,22 @@ export class TabsBarWrapper extends HTMLElement {
     }
 
     connectedCallback() {
+        console.log('TabGroupsWrapper is connected!')
         window.electron.ipcRenderer.on('ipc-get-default', (arg: any) => {
+            console.log('TabGroupsWrapper ipc-get-default', arg)
             this.initTabGroups(arg);
         });
         window.electron.ipcRenderer.on('ipc-close-tab', (arg: any) => {
-            this.closeTab(arg)
+            //this.closeTab(arg)
         });
         window.electron.ipcRenderer.on('ipc-set-new-tab', (arg: any) => {
-            this.initNewTab(arg)
+            //this.initNewTab(arg)
         });
         window.electron.ipcRenderer.on('ipc-toogle-tab-active', (arg: any) => {
+            console.log('TabGroupsWrapper ipc-toogle-tab-active', arg)
             this.toogleActive(arg);
         })
     }
-
-    attributeChangedCallback(attrName: any, oldVal: any, newVal: any) {
-        //console.log('Tabs-bar attributeChangedCallback!', attrName, oldVal, newVal);
-    }
+    
 }
-customElements.define("tabs-bar", TabsBarWrapper);
+customElements.define("tabs-bar", TabsGroupWrapper);

@@ -7,6 +7,11 @@
  */
 
 import { WebviewTag } from "electron";
+export interface DATASettingsType {
+    searchEngineUrl:string
+    defaultTab:TabElement
+}
+export type DATATabsType = TabElement[]
 
 export interface HistoryElement {
     id?:number,
@@ -19,9 +24,10 @@ export interface HistoryElement {
 }
 
 export interface TabElement {
-    id: string
+    id: number
+    groupId?: number
     time: number
-    isReady : boolean;
+    isReady : boolean
     isActive: boolean
     isLoaded: boolean
     current: HistoryElement
@@ -32,8 +38,10 @@ export interface TabElement {
 }
 
 export interface TabsGroupElement {
+    id : number
     time: number
     title : string
+    current: HistoryElement;
     isActive: boolean
     tabs: TabElement[]
 }

@@ -11,7 +11,7 @@ import { WebviewTag } from "electron";
 import { TabElement, TabsGroupElement } from "../model";
 
 
-export class AppWebView extends HTMLElement {
+export class WebviewsWrapper extends HTMLElement {
 
     wrapper: WebviewTag;
     currentTabElement: TabElement
@@ -109,20 +109,25 @@ export class AppWebView extends HTMLElement {
         this.shadowRoot.append(style, loader);
     }
 
-    initWebview(TabElement: TabElement) {
+    addWebView(tab:TabElement){
+        this.initWebview(tab);
+        this.goTo(tab);
+    }
 
-       //console.log('initTabElementview TabElement : ', TabElement)
+    initWebview(tab: TabElement) {
+
+        console.log('initTabElementview TabElement : ', tab)
         const wv = document.createElement("webview");
 
-        if (TabElement.isActive) {
+        if (tab.isActive) {
             wv.setAttribute('active', 'true');
-            wv.setAttribute('src', TabElement.current.url);
+            wv.setAttribute('src', tab.current.url);
         } else {
             wv.setAttribute('active', 'false');
         }
        
-        wv.setAttribute('id', 'webview-TabElement-' + TabElement.id);
-        wv.setAttribute('TabElement-id', TabElement.id);
+        wv.setAttribute('id', 'webview-tab-' + tab.id);
+        wv.setAttribute('tab-id', tab.id.toString());
         wv.setAttribute('preload', 'file://' + window.electron.webviewpreloadPath);
 
         this.shadowRoot.append(wv);
@@ -152,15 +157,13 @@ export class AppWebView extends HTMLElement {
         this.webviews.push(wv);
     }
 
-
-    
     goTo(arg: any) {
-        this.webviews.map((el)=>{console.log(el.getAttribute('TabElement-id'))});
+        console.log('WebView GoTO : ', arg)
         const wv = this.webviews.find((el)=>{
-            let TabElementId = el.getAttribute('TabElement-id');
+            let TabElementId = el.getAttribute('tab-id');
+            console.log('webviews.find', TabElementId)
             return TabElementId ==  arg.id
         });
-        //console.log('goTO', arg, wv, this.webviews);
         this.webviews.map((el) => {
             el.setAttribute('active', 'false');
         })
@@ -171,33 +174,30 @@ export class AppWebView extends HTMLElement {
     }
 
     deleteWebView(id: string) {
-        let findWebView = this.webviews.find(el => el.id == 'webview-TabElement-' + id);
-        let findIndex = this.webviews.findIndex(el => el.id == 'webview-TabElement-' + id);
-        //console.log('deleteWebView', findIndex, findWebView)
+        let findWebView = this.webviews.find(el => el.id == 'webview-tab-' + id);
+        let findIndex = this.webviews.findIndex(el => el.id == 'webview-tab-' + id);
         this.shadowRoot.removeChild(findWebView);
         this.webviews.splice(findIndex, 1);
     }
 
     connectedCallback() {
-        //console.log('App-webview is connected!')
-        window.electron.ipcRenderer.on('ipc-get-default', (arg: TabsGroupElement) => {
-            arg.tabs.map((TabElement, index) => {
-                this.initWebview(TabElement);
-            })
-        });
-        window.electron.ipcRenderer.on('ipc-set-new-TabElement', (arg: any) => {
-           //console.log('Webview ipc-set-new-TabElement', Date.now(), arg);
+        console.log('Webview is connected!')
+        window.electron.ipcRenderer.on('ipc-set-active-tab', (arg: TabsGroupElement) => {
+            console.log('Webview ipc-set-active-tab', Date.now(), arg);
             this.initWebview(arg);
-        })
-        window.electron.ipcRenderer.on('ipc-toogle-TabElement-active', (arg: any) => {
-            // eslint-disable-next-line no-console
-            //console.log('ipc-toogle-TabElement-active', Date.now(), arg);
-            this.goTo(arg);
         });
-        window.electron.ipcRenderer.on('ipc-close-TabElement', (arg: any) => {
+        window.electron.ipcRenderer.on('ipc-set-new-tab', (arg: any) => {
+           console.log('Webview ipc-set-new-tab', Date.now(), arg);
+           //this.addWebView(arg);
+        })
+        window.electron.ipcRenderer.on('ipc-toogle-tab-active', (arg: any) => {
+            console.log('Webview ipc-toogle-tab-active', Date.now(), arg);
+            //this.goTo(arg);
+        });
+        window.electron.ipcRenderer.on('ipc-close-tab', (arg: any) => {
             // eslint-disable-next-line no-console
-            //console.log('ipc-close-TabElement', Date.now(), arg);
-            this.deleteWebView(arg.id)
+            //console.log('ipc-close-tab', Date.now(), arg);
+            //this.deleteWebView(arg.id)
         });
     }
 
@@ -206,4 +206,4 @@ export class AppWebView extends HTMLElement {
     }
 
 }
-customElements.define("app-webview", AppWebView);
+customElements.define("app-webview", WebviewsWrapper);

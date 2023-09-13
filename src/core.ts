@@ -1,20 +1,26 @@
-import { TabsBarWrapper } from './components/tabs-bar';
-import { Tab } from './components/tab' 
+import { TabsGroupWrapper } from './components/TabsGroupWrapper';
+import { Tab } from './components/Tab'
+import { EventEmitter } from 'events';
 
-export function emit(emitter: TabsBarWrapper | Tab, type: string, args: any[]) {
-    //console.log('EVENT EMIT : ', emitter, type)
-    if (type === "ready") {
-      emitter.isReady = true;
-    }
-    emitter.dispatchEvent(new CustomEvent(type, {  bubbles: true, composed: true, detail: args },));
+export function emit(emitter: TabsGroupWrapper | Tab, type: string, args: any[]) {
+  console.log('EVENT EMIT : ', emitter, type)
+  if (type === "ready") {
+    emitter.isReady = true;
   }
-  
-export function on(emitter: TabsBarWrapper | Tab, type: string, fn: (detail: string) => void, options?: { [key: string]: any }) {
-    console.log('EVENT ON', emitter, type)
-    if (type === "ready" && emitter.isReady === true) {
-      fn.apply(emitter, [emitter]);
-    }
-    emitter.addEventListener(type, ((e: CustomEvent) => fn.apply(emitter, e.detail)) as EventListener, options);
-  }
+  emitter.dispatchEvent(new CustomEvent(type, { bubbles: true, composed: true, detail: args }));
+}
 
+export function on(emitter: TabsGroupWrapper | Tab, type: string, fn: (detail: string) => void, options?: { [key: string]: any }) {
+  console.log('EVENT ON', emitter, type)
+  emitter.addEventListener(type, ((e: CustomEvent) => fn.apply(e.detail)));
+}
+
+
+
+export class EventManager extends EventEmitter {
+  constructor() {
+    super();
+    
+  }
+}
 

@@ -31,10 +31,10 @@ import { WebviewTag } from 'electron';
 
 //Import app elements
 import './index.css';
-import './components/tabs-bar';
-import './components/nav-bar';
-import './components/webview-wrapper';
-import './components/app-root';
+import './components/TabsGroupWrapper';
+import './components/ActionBarWrapper';
+import './components/WebviewsWrapper';
+import './components/AppRoot';
 
 //console.log('👋 This message is being logged by "renderer.js", included via webpack');
 
