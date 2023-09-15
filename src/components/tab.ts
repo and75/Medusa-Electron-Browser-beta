@@ -1,143 +1,133 @@
 
 import { globeSvg, xmarkSvg } from "./Img";
 import { TabElement, HistoryElement} from '../model';
-import { on, emit, EventManager } from '../core'
+import { on, emit } from '../core'
 
 export class Tab extends EventTarget {
-    eventManager:EventManager
+
     id: number
     groupId:number
     time:number
     isActive : boolean;
-    isReady: boolean;
-    isLoaded: boolean
+    isClosed: boolean
     current: HistoryElement
-    history: HistoryElement[]
-    element: HTMLLIElement;
+    element: HTMLElement;
 
     favIcon: HTMLImageElement;
     closeIcon: HTMLImageElement;
     title: string;
     url: string;
     tabTitle: HTMLSpanElement;
+    listeners:EventListener[];
 
-    listeners: any;
-
-
-    
     constructor(options: TabElement) {
+
         super();
-        this.eventManager = new EventManager();
 
         this.id = options.id;
         this.time = options.time;
-        this.isReady = options.isReady;
-        this.isLoaded = options.isLoaded;
+        this.isActive = options.isActive;
+        this.isClosed = options.isClosed;
         this.title = options.current.title;
         this.url = options.current.url;
         this.current = options.current;
         this.groupId = options.groupId;
-        this.history = options.history;
-        this.isActive = options.isActive;
-        this.initTab();
+        this.listeners = [];
+        this._initTab();
         
         if(this.isActive){
-            window.electron.ipcRenderer.sendMessage('ipc-set-active-tab', this.getTabStatus());
+            window.electron.ipcRenderer.sendMessage('ipc-set-active-tab', this._getTabStatus());
         }
 
     }
 
 
-    private initTab() {
+    private _initTab() {
 
-        const liElement = document.createElement('li');
-        liElement.setAttribute("id", this.id.toString());
-        liElement.setAttribute("tabindex", this.id.toString());
-        liElement.setAttribute("class", "item");
+        //Tab item
+        const itemElement = document.createElement('div');
+        itemElement.setAttribute("id", this.id.toString());
+        itemElement.setAttribute("class", "item");
         if(this.isActive){
-            liElement.classList.add('active')
+            itemElement.classList.add('active')
         }
-        this.element = liElement;
-        
-        this.element.onclick = (event) => {
-            this.handleTabClick(event.composedPath());
-        };
-
-        this.element.addEventListener('toogle-tab-active', (e)=>{
-            console.log('toogle-tab-active', e);
-        })
-
+       
         //FavIcon
         const favIcon = document.createElement('img');
         favIcon.setAttribute("class", "favicon default");
         favIcon.setAttribute('src', globeSvg);
-        liElement.appendChild(favIcon);
+        itemElement.appendChild(favIcon);
         this.favIcon = favIcon;
 
         //Title
         const title = document.createElement('span');
         title.setAttribute("class", "title");
         title.innerText = this.title
-        liElement.appendChild(title);
+        itemElement.appendChild(title);
         this.tabTitle = title;
 
         //CloseIcon
         const closeIcon = document.createElement('img');
         closeIcon.setAttribute("class", "close-tab");
         closeIcon.setAttribute('src', xmarkSvg);
-        liElement.appendChild(closeIcon);
+        itemElement.appendChild(closeIcon);
         this.closeIcon = closeIcon
-        
+
+        this.element = itemElement;
+        this.element.addEventListener('click', this._handleTabClick.bind(this) as EventListener, {capture:true})
     }
 
-    closeTab(tabsList:HTMLUListElement){
-        tabsList.removeChild(this.element);
+    _closeTab(){
+        this.element.removeEventListener('click', this._handleTabClick.bind(this))
+        const parent = this.element.parentElement;
+        parent.removeChild(this.element);
     }
 
-    toogleActive(arg: any) {
+    _toogleActive(arg:TabElement) {
         if (this.id != arg.id) {
             this.isActive = false;
             this.element.classList.remove("active");
         } else {
             this.isActive = true;
             this.element.classList.add("active");
-            window.electron.ipcRenderer.sendMessage('ipc-set-active-tab', this.getTabStatus());
+            window.electron.ipcRenderer.sendMessage('ipc-set-active-tab', this._getTabStatus());
         }
     }
 
-    private handleTabClick(event: any) {
+    private _handleTabClick(event: any) {
+        event = event.composedPath()
         let target = event[0];
+        console.log(target);
         if (target.classList.contains('close-tab')) {
-            this.handleCloseTab();
+            this._handleCloseTab();
         }
         else {
-            this.handleActiveTab();
+            this._handleActiveTab();
         }
     }
 
-    private handleActiveTab() {
+    private _handleActiveTab() {
         if (this.isActive === false){
-            window.electron.ipcRenderer.sendMessage('ipc-toogle-tab-active', this.getTabStatus());
+            window.electron.ipcRenderer.sendMessage('ipc-toogle-tab-active', this._getTabStatus());
         }
     }
 
-    private handleCloseTab() {
-        window.electron.ipcRenderer.sendMessage('ipc-close-tab', this.getTabStatus());
+    private _handleCloseTab() {
+        window.electron.ipcRenderer.sendMessage('ipc-close-tab', this._getTabStatus());
     }
 
-    getTabStatus() {
+    _getTabStatus() {
         let status = {
             id: this.id,
             time:this.time,
-            isReady: this.isReady,
             isActive: this.isActive,
-            isLoaded: this.isLoaded,
+            isClosed: this.isClosed,
             current: this.current,
         }
         return status;
     }
 
-    getTabElement() {
+    _getTabElement() {
         return this.element
     }
 }

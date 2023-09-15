@@ -27,21 +27,21 @@ export interface TabElement {
     id: number
     groupId?: number
     time: number
-    isReady : boolean
     isActive: boolean
-    isLoaded: boolean
+    isClosed: boolean
     current: HistoryElement
-    history?: HistoryElement[]
-    getTabElement?:any
-    getTabStatus?:any
-    toogleActive?:any
+    element?:HTMLElement
+    _getTabElement?:any
+    _getTabStatus?:any
+    _toogleActive?:any
 }
 
 export interface TabsGroupElement {
     id : number
     time: number
     title : string
-    current: HistoryElement;
+    current: HistoryElement
+    color:string
     isActive: boolean
     tabs: TabElement[]
 }

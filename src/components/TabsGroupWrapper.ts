@@ -9,16 +9,24 @@
 import { plusSvg } from "./Img";
 import { TabElement, TabsGroupElement } from '../model';
 import { Tab } from "./Tab";
-import { on, emit } from '../core'
+
+
 
 export class TabsGroupWrapper extends HTMLElement {
 
     time: number
     isReady: boolean
     tabsWrapper: HTMLDivElement
-    tabsList: HTMLUListElement
     tabs: TabElement[]
     tabsGroups : TabsGroupElement[]
+
+
+    get tabGroupList() {
+        let items = this.shadowRoot.querySelectorAll(".group-wrapper.open");
+        var lastchild = items[items.length-1].lastElementChild;
+        return lastchild;
+    }
+
 
     constructor() {
 
@@ -34,22 +42,6 @@ export class TabsGroupWrapper extends HTMLElement {
         this.createElement();
 
    
-        this.addEventListener('toogle-tab-active', (e)=>{
-            console.log('toogle-tab-active', e);
-        })
-
-    }
-    
-    emit(type: string, ...args: any[]) {
-        return emit(this, type, args);
-    }
-
-    on(type: string, fn: (...detail: any[]) => void) {
-        return on(this, type, fn);
-    }
-
-    once(type: string, fn: (detail: string) => void) {
-        return on(this, type, fn, { once: true });
     }
 
     createElement() {
@@ -61,8 +53,6 @@ export class TabsGroupWrapper extends HTMLElement {
         const tabsWrapper = document.createElement("div");
         tabsWrapper.setAttribute("class", "tabs-wrapper");
         this.tabsWrapper = tabsWrapper;
-
-        
 
         // Create some CSS to apply to the shadow DOM
         const style = document.createElement("style");
@@ -85,27 +75,28 @@ export class TabsGroupWrapper extends HTMLElement {
                 flex: auto;
                 max-width: 77px;
                 overflow: hidden;
-                padding: 8px 10px;
-                border-radius: 5px;
+                padding: 5px 5px;
+                border-radius: 3px;
                 color: #fff;
                 font-size: 10px;
                 text-align: start;
-                font-weight: bold;
+                font-weight: 600;
+                letter-spacing: 0.5px;
                 white-space: nowrap;
-                text-overflow: ellipsis; 
+                text-overflow: ellipsis;
                 text-transform: uppercase;
                 cursor: pointer;
             }
-            .tabs-wrapper ul{
+            .tabs-wrapper .group-wrapper .tab-list{
                 display:none;
                 list-style-type: none;
                 margin: 0;
                 padding: 0;
             }
-            .tabs-wrapper .group-wrapper.open ul{
+            .tabs-wrapper .group-wrapper.open .tab-list{
                 display:flex
             }
-            .tabs-wrapper ul li{
+            .tabs-wrapper .tab-list .item{
                 flex: 1;
                 display:flex;
                 align-items:center;
@@ -119,8 +110,8 @@ export class TabsGroupWrapper extends HTMLElement {
                 margin-top: 1px;
                 max-width: 180px;
             }
-            .tabs-wrapper ul li.active,
-            .tabs-wrapper ul li:hover{
+            .tabs-wrapper .tab-list .item.active,
+            .tabs-wrapper .tab-list .item:hover{
                 background: #ffffff;
             }
             .tabs-wrapper .new-tab{
@@ -143,17 +134,17 @@ export class TabsGroupWrapper extends HTMLElement {
             .tabs-wrapper .new-tab:hover img{
                 opacity: 1;
             }
-            .tabs-wrapper ul li img.favicon{
+            .tabs-wrapper .tab-list .item img.favicon{
                 width:14px;
                 opacity: 0.5;
             }
-            .tabs-wrapper ul li.loading img.favicon{
+            .tabs-wrapper .tab-list .item.loading img.favicon{
                 display:none;
             }
-            .tabs-wrapper ul li img.favicon.loading{
+            .tabs-wrapper .tab-list .item img.favicon.loading{
                 display:none;
             }
-            .tabs-wrapper ul li.loading img.favicon.loading{
+            .tabs-wrapper .tab-list .item.loading img.favicon.loading{
                 display: block;
                 animation: rotate 1.5s linear infinite;
             }
@@ -163,14 +154,14 @@ export class TabsGroupWrapper extends HTMLElement {
                 }
               }
 
-            .tabs-wrapper ul li img.close-tab{
+            .tabs-wrapper .tab-list .item img.close-tab{
                 width:12px;
                 opacity: 0.5;
             }
-            .tabs-wrapper ul li img.close-tab:hover{
+            .tabs-wrapper .tab-list .item img.close-tab:hover{
                 opacity:1;
             }
-            .tabs-wrapper ul li span.title{
+            .tabs-wrapper .tab-list .item span.title{
                 flex: auto;
                 text-align: start;
                 max-width: 77px;
@@ -200,6 +191,7 @@ export class TabsGroupWrapper extends HTMLElement {
     }
 
     private initTabGroups(arg:TabsGroupElement[]){
+
         arg.map((el) => {
      
             const groupWrapper = document.createElement('div');
@@ -208,20 +200,21 @@ export class TabsGroupWrapper extends HTMLElement {
             
             const groupLabel = document.createElement('div');
             groupLabel.setAttribute("class", "group-label");
-            groupLabel.setAttribute("style", "background-color:"+this.generateRandomColor());
+            groupLabel.setAttribute("style", "background-color:"+el.color);
             groupLabel.innerText=el.title;
             groupWrapper.appendChild(groupLabel);
             groupLabel.onclick = (event) => {
                 this.toogleOpenGroup(event.composedPath());
             };
+            groupLabel.oncontextmenu =  this.toogleOpenMenu.bind(this);
     
-            const uList = document.createElement("ul");
-            uList.setAttribute("class", "tabs-list");
-            const tabsList = groupWrapper.appendChild(uList);
+            const tabList = document.createElement("div");
+            tabList.setAttribute("class", "tab-list");
+            groupWrapper.appendChild(tabList);
 
             el.tabs.map((t)=>{
                 const newTab = this.initTab(t);
-                tabsList.append(newTab.getTabElement());
+                tabList.append(newTab._getTabElement());
                 this.tabs.push(newTab);
             })
 
@@ -229,7 +222,7 @@ export class TabsGroupWrapper extends HTMLElement {
 
         })
 
-        //Add new tab
+        //Add new tab button
         const buttonNewTab = this.tabsWrapper.appendChild(document.createElement('div'));
         buttonNewTab.setAttribute("class", "new-tab");
         const newIcon = document.createElement('img');
@@ -239,9 +232,21 @@ export class TabsGroupWrapper extends HTMLElement {
         buttonNewTab.addEventListener('click', this.handleNewTab.bind(this), false)
     }
 
+    private toogleOpenMenu(e:PointerEvent){
+        const { clientX, clientY } = e;
+        window.electron.ipcRenderer.sendMessage('ipc-open-contextmenu', {clientX, clientY, type:'tabbar-group'}) 
+    }
+
+    private resetGroups(){
+        let find =this.tabsWrapper.querySelectorAll('.group-wrapper')
+        find.forEach(el=>{
+            this.tabsWrapper.removeChild(el);
+        })
+    }
+
     private initNewTab(arg:TabElement){
         const newTab = this.initTab(arg);
-        this.tabsList.append(newTab.getTabElement());
+        this.tabGroupList.append(newTab._getTabElement());
         this.tabs.push(newTab);
         this.toogleActive(newTab);
     }
@@ -261,12 +266,13 @@ export class TabsGroupWrapper extends HTMLElement {
                 }
             }
         });
-        find.tab.closeTab(this.tabsList);
+        find.tab._closeTab(this.tabsWrapper);
         this.toogleNext(arg, find);
         this.tabs.splice(find.index, 1);
     }
 
     private handleNewTab(this: any) {
+        console.log('handleNewTab', this)
         window.electron.ipcRenderer.sendMessage('ipc-set-new-tab');
     }
 
@@ -274,6 +280,7 @@ export class TabsGroupWrapper extends HTMLElement {
         let nextTab: TabElement;
         if (arg.isActive) {
             if (find.index == 0 && this.tabs.length == 1) {
+                this.resetGroups();
                 window.electron.ipcRenderer.sendMessage('ipc-get-default');
             } else {
                 if ((this.tabs.length - 1) == find.index) {
@@ -282,13 +289,13 @@ export class TabsGroupWrapper extends HTMLElement {
                 else {
                     nextTab = this.tabs[find.index + 1]
                 }
-                window.electron.ipcRenderer.sendMessage('ipc-toogle-tab-active', nextTab.getTabStatus());
+                window.electron.ipcRenderer.sendMessage('ipc-toogle-tab-active', nextTab._getTabStatus());
             }
         }
     }
 
     private toogleActive(tab: TabElement) {
-       this.tabs.map((t)=>t.toogleActive(tab))
+       this.tabs.map((t)=>t._toogleActive(tab))
     }
 
     connectedCallback() {
@@ -298,10 +305,11 @@ export class TabsGroupWrapper extends HTMLElement {
             this.initTabGroups(arg);
         });
         window.electron.ipcRenderer.on('ipc-close-tab', (arg: any) => {
-            //this.closeTab(arg)
+            this.closeTab(arg)
         });
         window.electron.ipcRenderer.on('ipc-set-new-tab', (arg: any) => {
-            //this.initNewTab(arg)
+            console.log('TabGroupsWrapper ipc-set-new-tab', arg)
+            this.initNewTab(arg)
         });
         window.electron.ipcRenderer.on('ipc-toogle-tab-active', (arg: any) => {
             console.log('TabGroupsWrapper ipc-toogle-tab-active', arg)

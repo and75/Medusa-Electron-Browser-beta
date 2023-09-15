@@ -9,7 +9,7 @@
 import { arrowLeft, arrowRight, arrowRotate, bookmarkSvg, clipboardSvg, clockRotateLeft, slidersSvg } from "./Img";
 import { TabElement } from '../model';
 
-export class ActionBarWrapper extends HTMLElement {
+export class WebviewActionBar extends HTMLElement {
 
     backIcon: HTMLImageElement;
     forwardIcon: HTMLImageElement;
@@ -181,4 +181,4 @@ export class ActionBarWrapper extends HTMLElement {
     }
 
 }
-customElements.define("nav-bar", ActionBarWrapper);
+customElements.define("webview-action-bar", WebviewActionBar);

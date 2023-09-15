@@ -31,8 +31,9 @@ import { WebviewTag } from 'electron';
 
 //Import app elements
 import './index.css';
+import './components/ContextMenu';
 import './components/TabsGroupWrapper';
-import './components/ActionBarWrapper';
+import './components/WebviewActionBar';
 import './components/WebviewsWrapper';
 import './components/AppRoot';
 

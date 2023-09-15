@@ -70,7 +70,7 @@ body {
 .app-wrapper{
   display: grid;
   grid-template-columns:  auto;
-  grid-template-rows: 112px calc(100vh - 111px);
+  grid-template-rows: 40px calc(100vh - 40px);
   grid-template-areas:
   "header"
   "webview";

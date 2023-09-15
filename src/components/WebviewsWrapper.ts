@@ -6,19 +6,19 @@
  * @copyright Andrea Porcella / Bellville-system 2023
  */
 
-
 import { WebviewTag } from "electron";
 import { TabElement, TabsGroupElement } from "../model";
 
-
 export class WebviewsWrapper extends HTMLElement {
 
-    wrapper: WebviewTag;
     currentTabElement: TabElement
-    webviews: WebviewTag[]
     loader: HTMLDivElement
+    wvContainer:HTMLDivElement
+    webviews: WebviewTag[]
+
 
     constructor() {
+
         // Always call super first in constructor
         super();
 
@@ -28,6 +28,18 @@ export class WebviewsWrapper extends HTMLElement {
         // Create a shadow root
         this.attachShadow({ mode: "open" }); // sets and returns 'this.shadowRoot'
 
+        //Create action bar
+        const actionBar = document.createElement('div');
+        actionBar.setAttribute('class', 'action-bar-container');
+        actionBar.appendChild(document.createElement('webview-action-bar'));
+
+        const loaderContainer = document.createElement('div');
+        loaderContainer.setAttribute('class', 'loader-container');
+
+        const wvContainer = document.createElement('div');
+        wvContainer.setAttribute('class', 'wv-container');
+        this.wvContainer = wvContainer;
+
         //Create loader element
         const loader = document.createElement('div');
         loader.setAttribute('class', 'loader');
@@ -35,18 +47,43 @@ export class WebviewsWrapper extends HTMLElement {
         loader_element.setAttribute('class', 'loader__element');
         loader.appendChild(loader_element);
         this.loader = loader;
+        loaderContainer.appendChild(loader)
 
 
         // Create some CSS to apply to the shadow DOM
         const style = document.createElement("style");
         style.textContent = `
             /* CSS truncated for brevity */
-             
+            :host{
+                display: grid;
+                grid-template-columns: 100%;
+                grid-template-rows: 70px 5px calc(100vh - 115px);
+                grid-template-areas:
+                    "action-container"
+                    "loader-container"
+                    "wv-container";
+                align-content: stretch; 
+            } 
+
+            .action-bar-container{
+                grid-area: action-container;
+                justify-self: stretch;  
+            }
+            .loader-container{
+                grid-area: loader-container;
+                justify-self: stretch; 
+            }
+            .wv-container{
+                grid-area: wv-container;
+                justify-self: stretch;  
+                border-top: 1px solid #ccc;
+                background:red;
+            }
+
             .loader {
               overflow: hidden;
               width: 100%;
-              height: 8px;
-              position: absolute;
+              height: 5px;
               top: 0;
               left: 0;
               display: flex;
@@ -59,9 +96,9 @@ export class WebviewsWrapper extends HTMLElement {
               
             .loader .loader__element,
             .loader.active .loader__element{
-                height: 4px;
+                height: 5px;
                 width: 100%;
-               /* background:#A5D6A7;*/
+                background:#7E57C2;
              }
                
              .loader .loader__element:before,
@@ -69,7 +106,7 @@ export class WebviewsWrapper extends HTMLElement {
                content: '';
                display: block;
                background-color: #ffc100;
-               height: 4px;
+               height: 5px;
              }
 
             .loader .loader__element:before {
@@ -90,60 +127,59 @@ export class WebviewsWrapper extends HTMLElement {
             @keyframes fadeOut {
                 100% { opacity: 0; }
             }
-
+    
             webview{
-                position: absolute;
-                top: 5.59px;
-                width: 100%;
-                height: 100%;
+                grid-area: wv-container;
+                justify-self: stretch;
+                display:inline-flex; 
                 visibility: hidden;
                 line-height: 0;
                 margin: 0;
                 padding: 0;
-                border-top: 1px solid #ccc;
             }
+
             webview[active=true]{
                 visibility:visible;
             }
         `;
-        this.shadowRoot.append(style, loader);
+        this.shadowRoot.append(style, actionBar, loaderContainer);
     }
 
-    addWebView(tab: TabElement) {
-        this.initWebview(tab);
-        this.goTo(tab);
+    _addWebView(tab: TabElement) {
+        this._initWebview(tab);
     }
 
     _existWebView(id: string) {
-        if (this.webviews.length > 0) {
-            return this.webviews.find(el => el.id == id);
-        }
+        return (this.webviews.length > 0) ? this.webviews.find(el => el.id == id) : null;
     }
 
-    _reset(){
+    _reset() {
         return this.webviews.map((el) => {
             el.setAttribute('active', 'false');
         })
     }
 
-    initWebview(tab: TabElement) {
+    _deleteWebView(id: string) {
+        let find = this._existWebView(id);
+        if(find){
+            this.shadowRoot.removeChild(find);
+            let findIndex = this.webviews.findIndex(el => el.id == find.id);
+            this.webviews.splice(findIndex, 1);
+        }
+    }
 
-        console.log('initTabElementview TabElement : ', tab, this._existWebView('webview-tab-' + tab.id))
+    _initWebview(tab: TabElement) {
+
         this._reset();
-        
-        const existWebView:WebviewTag | undefined = this._existWebView('webview-tab-' + tab.id);
-        
+
+        const existWebView: WebviewTag | undefined = this._existWebView('webview-tab-' + tab.id);
+
         if (!existWebView) {
 
             const wv = document.createElement("webview");
 
-            if (tab.isActive) {
-                wv.setAttribute('active', 'true');
-                wv.setAttribute('src', tab.current.url);
-            } else {
-                wv.setAttribute('active', 'false');
-            }
-
+            wv.setAttribute('active', 'true');
+            wv.setAttribute('src', tab.current.url);
             wv.setAttribute('id', 'webview-tab-' + tab.id);
             wv.setAttribute('tab-id', tab.id.toString());
             wv.setAttribute('preload', 'file://' + window.electron.webviewpreloadPath);
@@ -173,58 +209,27 @@ export class WebviewsWrapper extends HTMLElement {
             })
 
             this.webviews.push(wv);
+
         } else {
             existWebView.setAttribute('active', 'true');
         }
 
-
-    }
-
-    goTo(arg: any) {
-        console.log('WebView GoTO : ', arg)
-        const wv = this.webviews.find((el) => {
-            let TabElementId = el.getAttribute('tab-id');
-            return TabElementId == arg.id
-        });
-        this.webviews.map((el) => {
-            el.setAttribute('active', 'false');
-        })
-        if (!wv.hasAttribute('src')) {
-            wv.setAttribute('src', arg.current.url);
-        }
-        wv.setAttribute('active', 'true');
-    }
-
-    deleteWebView(id: string) {
-        let findWebView = this.webviews.find(el => el.id == 'webview-tab-' + id);
-        let findIndex = this.webviews.findIndex(el => el.id == 'webview-tab-' + id);
-        this.shadowRoot.removeChild(findWebView);
-        this.webviews.splice(findIndex, 1);
     }
 
     connectedCallback() {
         console.log('Webview is connected!')
         window.electron.ipcRenderer.on('ipc-set-active-tab', (arg: TabElement) => {
             console.log('Webview ipc-set-active-tab', Date.now(), arg);
-            this.initWebview(arg);
+            this._initWebview(arg);
         });
         window.electron.ipcRenderer.on('ipc-set-new-tab', (arg: any) => {
             console.log('Webview ipc-set-new-tab', Date.now(), arg);
-            //this.addWebView(arg);
+            this._addWebView(arg);
         })
-        window.electron.ipcRenderer.on('ipc-toogle-tab-active', (arg: any) => {
-            console.log('Webview ipc-toogle-tab-active', Date.now(), arg);
-            //this.goTo(arg);
-        });
         window.electron.ipcRenderer.on('ipc-close-tab', (arg: any) => {
-            // eslint-disable-next-line no-console
-            //console.log('ipc-close-tab', Date.now(), arg);
-            //this.deleteWebView(arg.id)
+            console.log('Webview ipc-close-tab', Date.now(), arg);
+            this._deleteWebView(arg.id)
         });
-    }
-
-    attributeChangedCallback(attrName: any, oldVal: any, newVal: any) {
-        //console.log('App-webview attributeChangedCallback!', attrName, oldVal, newVal);
     }
 
 }

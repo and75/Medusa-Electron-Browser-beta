@@ -66,6 +66,10 @@ const createWindow = (): void => {
   ipcMain.on('ipc-set-new-tab', async (event, arg) => {
     event.reply('ipc-set-new-tab', store.getDefaultTab())
   })
+  ipcMain.on('ipc-open-contextmenu', async (event, arg) => {
+    event.reply('ipc-open-contextmenu', arg)
+  })
+  
 
   // Create the browser window.
   const mainWindow = new BrowserWindow({
