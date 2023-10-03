@@ -9,9 +9,9 @@
 import { WebviewTag } from "electron";
 export interface DATASettingsType {
     searchEngineUrl:string
-    defaultTab:TabElement
+    defaultTab:TabStatus
 }
-export type DATATabsType = TabElement[]
+export type DATATabsType = TabStatus[]
 
 export interface HistoryElement {
     id?:number,
@@ -23,32 +23,95 @@ export interface HistoryElement {
     content: string | null
 }
 
-export interface TabElement {
-    id: number
-    groupId?: number
+export interface TabElement extends HTMLElement{
+    id: string
+    groupId?: string
     time: number
     isActive: boolean
-    isClosed: boolean
+    isClosed?: boolean
+    onLoading: boolean
     current: HistoryElement
     element?:HTMLElement
+    _setFavIcon?:any
+    _setTabTitle?:any
+    _toogleLoadingIcon?:any
     _getTabElement?:any
     _getTabStatus?:any
     _toogleActive?:any
+    _closeTab?:any
+}
+
+export interface TabStatus{
+    id: string
+    groupId?: string
+    time: number
+    isActive: boolean
+    isClosed: boolean
+    onLoading: boolean
+    url:string
+    favIcon:string
+    current: HistoryElement
 }
 
 export interface TabsGroupElement {
-    id : number
+    id : string
     time: number
     title : string
     current: HistoryElement
     color:string
     isActive: boolean
-    tabs: TabElement[]
+    tabs: TabStatus[]
 }
 
 export interface TabsBarWrapperElement {
     wrapper:HTMLDivElement
     tabsGroups :TabsGroupElement[]
+}
+
+export interface NavMenuElement extends HTMLElement{
+    wrapper:HTMLUListElement
+    backIcon: HTMLImageElement;
+    forwardIcon: HTMLImageElement;
+    reloadIcon: HTMLImageElement;
+    webview:WebviewTag
+    canGoBack:boolean
+    canGoForward:boolean
+    canReload:boolean
+    _initNav:any
+    _updateWebView:any
+    _setStatus:any
+    _goBack:any
+    _goForward:any
+    _reload:any
+    _reset:any;
+}
+
+export interface AddressBarElement extends HTMLElement{
+    url:string;
+    bookmark: HTMLLIElement
+    formAction:HTMLFormElement
+    formInput:HTMLInputElement
+    _setUrl:any
+    _setWebView:any;
+}
+
+export interface PanelMenuElement extends HTMLElement{
+    bookmark: HTMLLIElement
+    notes: HTMLLIElement
+    history: HTMLLIElement
+    settings: HTMLLIElement
+    devtools: HTMLLIElement
+    webview: WebviewTag | null
+    _setWebView:any;
+}
+
+export interface Panel extends HTMLElement {
+    search: HTMLDivElement  | null
+    searchForm: HTMLFormElement  | null
+    searchInput: HTMLInputElement  | null
+    content: HTMLDivElement  | null
+    webview: WebviewTag | null
+    _setWebView:any
 }
 
 export interface WebViewElement {

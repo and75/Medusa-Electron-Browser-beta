@@ -7,15 +7,25 @@
  */
 
 import { WebviewTag } from "electron";
-import { TabElement, TabsGroupElement } from "../model";
+import { NavMenuElement, AddressBarElement, PanelMenuElement, TabElement, TabStatus } from "../model";
+import { NavMenu } from "./NavMenu";
+import { AddressBar } from "./AddressBar";
+import { PanelMenu } from "./PanelMenu";
+import { Panel } from "./Panel";
 
 export class WebviewsWrapper extends HTMLElement {
 
     currentTabElement: TabElement
     loader: HTMLDivElement
-    wvContainer:HTMLDivElement
+    wvContainer: HTMLDivElement
+    panelContainer:HTMLDivElement
+    navMenu: NavMenuElement
+    addressBar: AddressBarElement
+    panelMenu: PanelMenuElement
     webviews: WebviewTag[]
-
+    eventsManager: any[]
+    activeWebView: WebviewTag
+    sidePanel:HTMLElement | null
 
     constructor() {
 
@@ -23,32 +33,12 @@ export class WebviewsWrapper extends HTMLElement {
         super();
 
         this.webviews = [];
+        this.sidePanel = null;
+        this.eventsManager = [];
 
         // write element functionality in here
         // Create a shadow root
         this.attachShadow({ mode: "open" }); // sets and returns 'this.shadowRoot'
-
-        //Create action bar
-        const actionBar = document.createElement('div');
-        actionBar.setAttribute('class', 'action-bar-container');
-        actionBar.appendChild(document.createElement('webview-action-bar'));
-
-        const loaderContainer = document.createElement('div');
-        loaderContainer.setAttribute('class', 'loader-container');
-
-        const wvContainer = document.createElement('div');
-        wvContainer.setAttribute('class', 'wv-container');
-        this.wvContainer = wvContainer;
-
-        //Create loader element
-        const loader = document.createElement('div');
-        loader.setAttribute('class', 'loader');
-        const loader_element = document.createElement('div');
-        loader_element.setAttribute('class', 'loader__element');
-        loader.appendChild(loader_element);
-        this.loader = loader;
-        loaderContainer.appendChild(loader)
-
 
         // Create some CSS to apply to the shadow DOM
         const style = document.createElement("style");
@@ -56,18 +46,21 @@ export class WebviewsWrapper extends HTMLElement {
             /* CSS truncated for brevity */
             :host{
                 display: grid;
-                grid-template-columns: 100%;
+                grid-template-columns: 1fr auto;
                 grid-template-rows: 70px 5px calc(100vh - 115px);
                 grid-template-areas:
-                    "action-container"
-                    "loader-container"
-                    "wv-container";
+                    "action-container action-container"
+                    "loader-container loader-container"
+                    "wv-container panel-container";
                 align-content: stretch; 
-            } 
-
+            }
             .action-bar-container{
                 grid-area: action-container;
-                justify-self: stretch;  
+                justify-self: stretch;
+                display: flex;
+                gap:10px;
+                align-items: center;
+                padding: 0 10px;
             }
             .loader-container{
                 grid-area: loader-container;
@@ -79,7 +72,6 @@ export class WebviewsWrapper extends HTMLElement {
                 border-top: 1px solid #ccc;
                 background:red;
             }
-
             .loader {
               overflow: hidden;
               width: 100%;
@@ -93,14 +85,12 @@ export class WebviewsWrapper extends HTMLElement {
               z-index: 100000;
               transition: all 1s;
             }
-              
             .loader .loader__element,
             .loader.active .loader__element{
                 height: 5px;
                 width: 100%;
                 background:#7E57C2;
              }
-               
              .loader .loader__element:before,
              .loader.active .loader__element:before {
                content: '';
@@ -108,7 +98,6 @@ export class WebviewsWrapper extends HTMLElement {
                background-color: #ffc100;
                height: 5px;
              }
-
             .loader .loader__element:before {
                width: 100%;
                animation: fadeOut 1s linear both;
@@ -137,99 +126,238 @@ export class WebviewsWrapper extends HTMLElement {
                 margin: 0;
                 padding: 0;
             }
-
             webview[active=true]{
                 visibility:visible;
             }
-        `;
-        this.shadowRoot.append(style, actionBar, loaderContainer);
-    }
 
-    _addWebView(tab: TabElement) {
-        this._initWebview(tab);
+            .panel-container {
+                grid-area: panel-container;
+                background: #f1f1f1;
+            }
+
+        `;
+
+        //Create action bar
+        const actionBar = document.createElement('div');
+        actionBar.setAttribute('class', 'action-bar-container');
+
+        //Create navigation menu 
+        this.navMenu = new NavMenu()
+        actionBar.appendChild(this.navMenu);
+
+        //Create address bar
+        this.addressBar = new AddressBar();
+        actionBar.appendChild(this.addressBar);
+
+        //Create panel menu
+        this.panelMenu = new PanelMenu();
+        actionBar.appendChild(this.panelMenu);
+
+        //Create loader element
+        const loaderContainer = document.createElement('div');
+        loaderContainer.setAttribute('class', 'loader-container');
+        const loader = document.createElement('div');
+        loader.setAttribute('class', 'loader');
+        const loader_element = document.createElement('div');
+        loader_element.setAttribute('class', 'loader__element');
+        loader.appendChild(loader_element);
+        this.loader = loader;
+        loaderContainer.appendChild(loader)
+
+        //Create Webviews container
+        const wvContainer = document.createElement('div');
+        wvContainer.setAttribute('class', 'wv-container');
+        this.wvContainer = wvContainer;
+
+        //Create Panel container
+        const panelContainer = document.createElement('div');
+        panelContainer.setAttribute('class', 'panel-container');
+        this.panelContainer = panelContainer;
+       
+        this.shadowRoot.append(style, actionBar, loaderContainer, panelContainer);
     }
 
     _existWebView(id: string) {
         return (this.webviews.length > 0) ? this.webviews.find(el => el.id == id) : null;
     }
 
-    _reset() {
+    _addWebView(tab: TabStatus) {
+        this._initWebview(tab);
+    }
+
+    _deleteWebView(id: string): WebviewTag {
+        let find = this._existWebView(id);
+        if (find) {
+            find.stop();
+            this._removeAllHandler(find);
+            this.shadowRoot.removeChild(find);
+
+            let findIndex = this.webviews.findIndex(el => el.id == find.id);
+            this.webviews.splice(findIndex, 1);
+        }
+        return find;
+    }
+
+    _createWebWiew(tab: TabStatus) {
+        const wv = document.createElement("webview");
+        wv.setAttribute('src', tab.current.url);
+        wv.setAttribute('id', 'webview-tab-' + tab.id);
+        wv.setAttribute('tab-id', tab.id);
+        wv.setAttribute('preload', 'file://' + window.electron.webviewpreloadPath);
+        this.webviews.push(wv);
+        this.shadowRoot.append(wv);
+        return wv;
+    }
+
+    _resetActive() {
         return this.webviews.map((el) => {
+            //this._removeAllHandler(el);
             el.setAttribute('active', 'false');
         })
     }
 
-    _deleteWebView(id: string) {
-        let find = this._existWebView(id);
-        if(find){
-            this.shadowRoot.removeChild(find);
-            let findIndex = this.webviews.findIndex(el => el.id == find.id);
-            this.webviews.splice(findIndex, 1);
+    _setActiveWebView(webview: WebviewTag) {
+        this._resetActive();
+        this.navMenu._reset();
+        this._registerHandler(webview);
+        webview.setAttribute('active', 'true');
+        if (webview.hasAttribute('ready')) {
+            this.navMenu._initNav(webview);
+            this.navMenu._setStatus();
+            this.addressBar._setWebView(webview)
+            this.panelMenu._setWebView(webview)
         }
     }
 
-    _initWebview(tab: TabElement) {
+    _initWebview(tab: TabStatus) {
+        const findWebView: WebviewTag | undefined = this._existWebView('webview-tab-' + tab.id)
+        const webView = (findWebView) ? findWebView : this._createWebWiew(tab);
+        return this._setActiveWebView(webView);
+    }
 
-        this._reset();
+    _registerHandler(el: HTMLElement | WebviewTag) {
+        const handlers = [
+            {
+                name: 'dom-ready',
+                fn: this._domReady.bind(this)
+            },
+            {
+                name: 'did-start-loading',
+                fn: this._loadingStart.bind(this)
+            },
+            {
+                name: 'did-stop-loading',
+                fn: this._loadingStop.bind(this)
+            },
+            {
+                name: 'page-title-updated',
+                fn: this._updateTabTitle.bind(this)
+            },
+            {
+                name: 'page-favicon-updated',
+                fn: this._updateTabFavIcon.bind(this)
+            },
+            {
+                name: 'render-process-gone',
+                fn: this._renderProcessGone.bind(this)
+            }
+        ];
 
-        const existWebView: WebviewTag | undefined = this._existWebView('webview-tab-' + tab.id);
+        handlers.forEach((handler) => {
+            el.addEventListener(handler.name, handler.fn);
+            this.eventsManager.push(
+                { el, name: handler.name, action: handler.fn }
+            )
+        })
 
-        if (!existWebView) {
+    }
 
-            const wv = document.createElement("webview");
+    _renderProcessGone(e: Event) {
+        console.error(e)
+    }
 
-            wv.setAttribute('active', 'true');
-            wv.setAttribute('src', tab.current.url);
-            wv.setAttribute('id', 'webview-tab-' + tab.id);
-            wv.setAttribute('tab-id', tab.id.toString());
-            wv.setAttribute('preload', 'file://' + window.electron.webviewpreloadPath);
+    _removeAllHandler(el: WebviewTag | HTMLElement) {
+        this.eventsManager.forEach((item, index) => {
+            //console.log('_removeAllHandler', item)
+            if (item.el == el) {
+                item.el.PointerEvent
+                item.el.removeEventListener(item.name, item.action);
+            }
+        })
+    }
 
-            this.shadowRoot.append(wv);
+    _domReady(e: any) {
+        let target = e.target as HTMLElement;
+        console.log('_domReady', target.hasAttribute('active'))
 
-            wv.addEventListener('dom-ready', (e) => {
-                //console.log('dom-ready', e);
-            })
-            wv.addEventListener('did-start-loading', (e) => {
-                //console.log('did-start-loading', e);
-                this.loader.setAttribute('class', 'loader active')
-            })
-            wv.addEventListener('did-stop-loading', (e) => {
-                //console.log('did-stop-loading', e);
-                //console.log(wv.getURL());
-                this.loader.setAttribute('class', 'loader')
-            })
-            wv.addEventListener('page-title-updated', (e) => {
-                //console.log('page-title-updated', e)
-            })
-            wv.addEventListener('page-favicon-updated', (e) => {
-                //console.log('page-favicon-updated', e)
-            })
-            wv.addEventListener('console-message', (e) => {
-                //console.log('Guest page logged a message:', e.message)
-            })
-
-            this.webviews.push(wv);
-
-        } else {
-            existWebView.setAttribute('active', 'true');
+        
+        if (target.hasAttribute('active')) {
+            this.navMenu._initNav(target);
+            this.addressBar._setWebView(e.target);
+            this.panelMenu._setWebView(e.target)
         }
+        if (!target.hasAttribute('ready')) {
+            target.setAttribute('ready', '');
+        }
+    }
 
+    _loadingStart(e: any) {
+        let target = e.target as HTMLElement;
+        let tabID = target.getAttribute('tab-id');
+        let arg = { tabID };
+        this.navMenu._setStatus();
+        window.electron.ipcRenderer.sendMessage('ipc-page-loading-start', arg)
+    }
+
+    _loadingStop(e: any) {
+        let target = e.target as HTMLElement;
+        let tabID = target.getAttribute('tab-id');
+        let arg = { tabID };
+        console.log('_loadingStop', e, arg)
+        this.navMenu._setStatus();
+        window.electron.ipcRenderer.sendMessage('ipc-page-loading-stop', arg)
+    }
+
+    _updateTabTitle(e: any) {
+        console.log('_updateTabTitle', e)
+        let target = e.target as HTMLElement;
+        let title = e.title as any
+        let tabID = target.getAttribute('tab-id');
+        let arg = { title, tabID };
+        window.electron.ipcRenderer.sendMessage('ipc-update-tab-title', arg)
+    }
+
+    _updateTabFavIcon(e: any) {
+        let target = e.target as HTMLElement;
+        let favicons = e.favicons as any
+        let tabID = target.getAttribute('tab-id');
+        let arg = { favicons, tabID };
+        console.log(arg)
+        window.electron.ipcRenderer.sendMessage('ipc-page-favicon-updated', arg)
+    }
+
+    _openSidePanel(arg:any){
+        if(this.sidePanel) this.sidePanel.remove();
+        const sidePanel = new Panel();
+        sidePanel._createPanel(arg.type);
+        this.sidePanel = sidePanel
+        return this.panelContainer.appendChild(this.sidePanel);
     }
 
     connectedCallback() {
         console.log('Webview is connected!')
-        window.electron.ipcRenderer.on('ipc-set-active-tab', (arg: TabElement) => {
+        window.electron.ipcRenderer.on('ipc-set-active-tab', (arg: TabStatus) => {
             console.log('Webview ipc-set-active-tab', Date.now(), arg);
             this._initWebview(arg);
         });
-        window.electron.ipcRenderer.on('ipc-set-new-tab', (arg: any) => {
-            console.log('Webview ipc-set-new-tab', Date.now(), arg);
-            this._addWebView(arg);
-        })
         window.electron.ipcRenderer.on('ipc-close-tab', (arg: any) => {
             console.log('Webview ipc-close-tab', Date.now(), arg);
             this._deleteWebView(arg.id)
         });
+        window.electron.ipcRenderer.on('ipc-open-sidepanel', (arg:any)=>{
+            console.log('Webview ipc-open-sidepanel', Date.now(), arg);
+            this._openSidePanel(arg)
+        })
     }
 
 }

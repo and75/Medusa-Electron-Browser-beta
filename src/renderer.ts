@@ -33,6 +33,7 @@ import { WebviewTag } from 'electron';
 import './index.css';
 import './components/ContextMenu';
 import './components/TabsGroupWrapper';
+import './components/NavMenu';
 import './components/WebviewActionBar';
 import './components/WebviewsWrapper';
 import './components/AppRoot';

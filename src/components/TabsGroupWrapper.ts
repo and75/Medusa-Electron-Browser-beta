@@ -7,7 +7,7 @@
  */
 
 import { plusSvg } from "./Img";
-import { TabElement, TabsGroupElement } from '../model';
+import { TabElement, TabStatus, TabsGroupElement } from '../model';
 import { Tab } from "./Tab";
 
 
@@ -17,31 +17,25 @@ export class TabsGroupWrapper extends HTMLElement {
     time: number
     isReady: boolean
     tabsWrapper: HTMLDivElement
-    tabs: TabElement[]
-    tabsGroups : TabsGroupElement[]
-
+    groupsWrapper: HTMLDivElement
+    tabs: Map<string, TabElement>
+    tabsGroups: TabsGroupElement[]
+    
 
     get tabGroupList() {
         let items = this.shadowRoot.querySelectorAll(".group-wrapper.open");
-        var lastchild = items[items.length-1].lastElementChild;
+        var lastchild = items[items.length - 1].lastElementChild;
         return lastchild;
     }
 
 
     constructor() {
-
-        // Always call super first in constructor
         super();
-
         this.tabsGroups = [];
-
         this.time = Date.now();
         this.isReady = false;
-        this.tabs = [];
-
+        this.tabs = new Map();
         this.createElement();
-
-   
     }
 
     createElement() {
@@ -53,6 +47,16 @@ export class TabsGroupWrapper extends HTMLElement {
         const tabsWrapper = document.createElement("div");
         tabsWrapper.setAttribute("class", "tabs-wrapper");
         this.tabsWrapper = tabsWrapper;
+
+
+        //Add new tab button
+        const buttonNewTab = this.tabsWrapper.appendChild(document.createElement('div'));
+        buttonNewTab.setAttribute("class", "new-tab");
+        const newIcon = document.createElement('img');
+        newIcon.setAttribute("class", "favicon plus");
+        newIcon.setAttribute('src', plusSvg);
+        buttonNewTab.appendChild(newIcon);
+        buttonNewTab.addEventListener('click', this.handleNewTab.bind(this), false)
 
         // Create some CSS to apply to the shadow DOM
         const style = document.createElement("style");
@@ -131,44 +135,6 @@ export class TabsGroupWrapper extends HTMLElement {
                 width:14px;
                 opacity: 0.5;
             }
-            .tabs-wrapper .new-tab:hover img{
-                opacity: 1;
-            }
-            .tabs-wrapper .tab-list .item img.favicon{
-                width:14px;
-                opacity: 0.5;
-            }
-            .tabs-wrapper .tab-list .item.loading img.favicon{
-                display:none;
-            }
-            .tabs-wrapper .tab-list .item img.favicon.loading{
-                display:none;
-            }
-            .tabs-wrapper .tab-list .item.loading img.favicon.loading{
-                display: block;
-                animation: rotate 1.5s linear infinite;
-            }
-            @keyframes rotate{
-                100% {
-                  transform: rotate(360deg);
-                }
-              }
-
-            .tabs-wrapper .tab-list .item img.close-tab{
-                width:12px;
-                opacity: 0.5;
-            }
-            .tabs-wrapper .tab-list .item img.close-tab:hover{
-                opacity:1;
-            }
-            .tabs-wrapper .tab-list .item span.title{
-                flex: auto;
-                text-align: start;
-                max-width: 77px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
         `;
 
         // attach the created elements to the shadow DOM
@@ -176,146 +142,184 @@ export class TabsGroupWrapper extends HTMLElement {
 
     }
 
-    private generateRandomColor(){
+    private generateRandomColor() {
         let maxVal = 0xFFFFFF; // 16777215
-        let randomNumber = Math.random() * maxVal; 
+        let randomNumber = Math.random() * maxVal;
         randomNumber = Math.floor(randomNumber);
         let randomString = randomNumber.toString(16);
-        let randColor = randomString.padStart(6, randomString);   
+        let randColor = randomString.padStart(6, randomString);
         return `#${randColor.toUpperCase()}`
     }
 
-    private toogleOpenGroup(event:any){
+    private toogleOpenGroup(event: any) {
         let target = event[0];
         target.parentElement.classList.toggle('open');
     }
 
-    private initTabGroups(arg:TabsGroupElement[]){
+    private initTabGroups(arg: TabsGroupElement[]) {
 
         arg.map((el) => {
-     
+
             const groupWrapper = document.createElement('div');
             groupWrapper.setAttribute("class", "group-wrapper  open");
-            groupWrapper.setAttribute("id", "group-"+el.id);
-            
+            groupWrapper.setAttribute("id", "group-" + el.id);
+
             const groupLabel = document.createElement('div');
             groupLabel.setAttribute("class", "group-label");
-            groupLabel.setAttribute("style", "background-color:"+el.color);
-            groupLabel.innerText=el.title;
+            groupLabel.setAttribute("style", "background-color:" + el.color);
+            groupLabel.innerText = el.title;
             groupWrapper.appendChild(groupLabel);
             groupLabel.onclick = (event) => {
                 this.toogleOpenGroup(event.composedPath());
             };
-            groupLabel.oncontextmenu =  this.toogleOpenMenu.bind(this);
-    
+            groupLabel.oncontextmenu = this.toogleOpenMenu.bind(this);
+
             const tabList = document.createElement("div");
             tabList.setAttribute("class", "tab-list");
-            groupWrapper.appendChild(tabList);
 
-            el.tabs.map((t)=>{
-                const newTab = this.initTab(t);
-                tabList.append(newTab._getTabElement());
-                this.tabs.push(newTab);
+            el.tabs.map((t) => {
+                let newTab = this.initTab(t) as TabElement;
+                tabList.append(newTab);
+                this.tabs.set(t.id, newTab);
             })
 
-            this.tabsWrapper.appendChild(groupWrapper);
+            groupWrapper.appendChild(tabList);
 
+
+
+            this.tabsWrapper.insertBefore(groupWrapper,  this.tabsWrapper.firstChild);
         })
-
-        //Add new tab button
-        const buttonNewTab = this.tabsWrapper.appendChild(document.createElement('div'));
-        buttonNewTab.setAttribute("class", "new-tab");
-        const newIcon = document.createElement('img');
-        newIcon.setAttribute("class", "favicon plus");
-        newIcon.setAttribute('src', plusSvg);
-        buttonNewTab.appendChild(newIcon);
-        buttonNewTab.addEventListener('click', this.handleNewTab.bind(this), false)
     }
 
-    private toogleOpenMenu(e:PointerEvent){
+    private toogleOpenMenu(e: PointerEvent) {
         const { clientX, clientY } = e;
-        window.electron.ipcRenderer.sendMessage('ipc-open-contextmenu', {clientX, clientY, type:'tabbar-group'}) 
+        window.electron.ipcRenderer.sendMessage('ipc-open-contextmenu', { clientX, clientY, type: 'tabbar-group' })
     }
 
-    private resetGroups(){
-        let find =this.tabsWrapper.querySelectorAll('.group-wrapper')
-        find.forEach(el=>{
+    private resetGroups() {
+        let find = this.tabsWrapper.querySelectorAll('.group-wrapper')
+        find.forEach(el => {
             this.tabsWrapper.removeChild(el);
         })
     }
 
-    private initNewTab(arg:TabElement){
-        const newTab = this.initTab(arg);
-        this.tabGroupList.append(newTab._getTabElement());
-        this.tabs.push(newTab);
+    private initNewTab(arg: TabStatus) {
+        const newTab = this.initTab(arg) as TabElement;
+        console.log('initNewTab', newTab);
+        this.tabGroupList.append(newTab);
+        this.tabs.set(arg.id, newTab);
         this.toogleActive(newTab);
     }
 
-    private initTab(arg: TabElement):TabElement{
-        let tab = new Tab(arg);
+    private initTab(arg: TabStatus): HTMLElement {
+        let tab = new Tab();
+        tab.initTab(arg);
         return tab;
     }
 
+    private getNext(id: string) {
+        let tabArray = [...this.tabs];
+        console.log(tabArray);
+        let index = tabArray.findIndex((el) => el[0] === id);
+        return {
+            next: (tabArray[index + 1]) ? tabArray[index + 1][1] : null,
+            prev: (tabArray[index - 1]) ? tabArray[index - 1][1] : null
+        }
+    }
+
     private closeTab(arg: any) {
-        let find: any = {}
-        this.tabs.forEach((el, index) => {
-            if (el.id == arg.id) {
-                find = {
-                    tab: el,
-                    index: index
-                }
-            }
-        });
-        find.tab._closeTab(this.tabsWrapper);
-        this.toogleNext(arg, find);
-        this.tabs.splice(find.index, 1);
+        try {
+            let find = this.tabs.get(arg.id)
+            let getTabNav = this.getNext(arg.id);
+            console.log(getTabNav);
+            find._closeTab(this.tabsWrapper);
+            this.tabs.delete(arg.id);
+            this.toogleNextActive(arg, getTabNav);
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     private handleNewTab(this: any) {
-        console.log('handleNewTab', this)
+        //console.log('handleNewTab', this)
         window.electron.ipcRenderer.sendMessage('ipc-set-new-tab');
     }
 
-    private toogleNext(arg: any, find: any){
-        let nextTab: TabElement;
+    private toogleNextActive(arg: TabElement, nav: any) {
         if (arg.isActive) {
-            if (find.index == 0 && this.tabs.length == 1) {
+            let nextTab: TabElement;
+            if (nav.next) {
+                nextTab = nav.next;
+            } else if (nav.prev) {
+                nextTab = nav.prev;
+            } else {
                 this.resetGroups();
                 window.electron.ipcRenderer.sendMessage('ipc-get-default');
-            } else {
-                if ((this.tabs.length - 1) == find.index) {
-                    nextTab = this.tabs[find.index - 1]
-                }
-                else {
-                    nextTab = this.tabs[find.index + 1]
-                }
-                window.electron.ipcRenderer.sendMessage('ipc-toogle-tab-active', nextTab._getTabStatus());
+                return
             }
+            window.electron.ipcRenderer.sendMessage('ipc-toogle-tab-active', nextTab._getTabStatus());
         }
     }
 
     private toogleActive(tab: TabElement) {
-       this.tabs.map((t)=>t._toogleActive(tab))
+        this.tabs.forEach((t) => t._toogleActive(tab))
+    }
+
+    private setFavIcon(arg: any) {
+        let find:TabElement;
+        return (find = this.tabs.get(arg.tabID)) ? find._setFavIcon(arg.favicons[0]) :null;
+    }
+
+    private setTabTitle(arg: any) {
+        const find = this.tabs.get(arg.tabID);
+        if (find) {
+            find._setTabTitle(arg.title);
+        }
+    }
+
+    private toogleLoading(arg: any) {
+        const find = this.tabs.get(arg.tabID);
+        console.log('toogleLoading', arg, find)
+       
+        find._toogleLoadingIcon()
     }
 
     connectedCallback() {
         console.log('TabGroupsWrapper is connected!')
         window.electron.ipcRenderer.on('ipc-get-default', (arg: any) => {
-            console.log('TabGroupsWrapper ipc-get-default', arg)
+            //console.log('TabGroupsWrapper ipc-get-default', arg)
             this.initTabGroups(arg);
         });
         window.electron.ipcRenderer.on('ipc-close-tab', (arg: any) => {
             this.closeTab(arg)
         });
         window.electron.ipcRenderer.on('ipc-set-new-tab', (arg: any) => {
-            console.log('TabGroupsWrapper ipc-set-new-tab', arg)
+            //console.log('TabGroupsWrapper ipc-set-new-tab', arg)
             this.initNewTab(arg)
         });
         window.electron.ipcRenderer.on('ipc-toogle-tab-active', (arg: any) => {
-            console.log('TabGroupsWrapper ipc-toogle-tab-active', arg)
+            //console.log('TabGroupsWrapper ipc-toogle-tab-active', arg)
             this.toogleActive(arg);
         })
+        window.electron.ipcRenderer.on('ipc-page-favicon-updated', (arg: any) => {
+            //console.log('TabGroupsWrapper ipc-page-favicon-updated', arg)
+            this.setFavIcon(arg);
+        })
+        window.electron.ipcRenderer.on('ipc-update-tab-title', (arg: any) => {
+            //console.log('TabGroupsWrapper ipc-update-tab-title', arg)
+            this.setTabTitle(arg);
+        })
+        window.electron.ipcRenderer.on('ipc-page-loading-start', (arg: any) => {
+            //console.log('TabGroupsWrapper ipc-page-loading-start', arg)
+            this.toogleLoading(arg);
+        })
+        window.electron.ipcRenderer.on('ipc-page-loading-stop', (arg: any) => {
+            //console.log('TabGroupsWrapper ipc-page-loading-stop', arg)
+            this.toogleLoading(arg);
+        })
+
+
     }
-    
+
 }
 customElements.define("tabs-bar", TabsGroupWrapper);

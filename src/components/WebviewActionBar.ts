@@ -170,7 +170,7 @@ export class WebviewActionBar extends HTMLElement {
         console.log('Nav-bar is connected!')
         window.electron.ipcRenderer.on('ipc-set-active-tab', (arg: any) => {
             // eslint-disable-next-line no-console
-            console.log('Nav-Bar ipc-set-active-tab', arg);
+            //console.log('Nav-Bar ipc-set-active-tab', arg);
             this.urlInput.value = arg.current.url
         });
         window.electron.ipcRenderer.on('ipc-toogle-tab-active', (arg: any) => {
