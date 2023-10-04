@@ -8,7 +8,9 @@
 
 import { TabsGroupWrapper } from "./TabsGroupWrapper";
 import { WebviewsWrapper } from "./WebviewsWrapper";
-import {ContextMenu} from "./ContextMenu"
+import { ContextMenu } from "./ContextMenu"
+import { LogElement } from "./../model";
+import { appLog } from "./../core";
 
 export class AppRoot extends HTMLElement {
 
@@ -48,8 +50,13 @@ export class AppRoot extends HTMLElement {
     //this.shadowRoot.append(style);
   }
 
+  private _log(options: LogElement) {
+    options.className = this.constructor.name;
+    return appLog(options);
+  }
+
   connectedCallback() {
-    console.log('App-root is connected!')
+    this._log({message:'Is connected!', color:'#cc5'})
     // calling IPC exposed from preload script
     window.electron.ipcRenderer.sendMessage('ipc-get-default', ['app-root']);
   }

@@ -1,4 +1,6 @@
 import { plusSvg, saveSvg, xmarkSvg,folderMinusSvg } from "./Img";
+import { LogElement } from "./../model";
+import { appLog } from "./../core";
 
 export class ContextMenu extends HTMLElement {
 
@@ -91,7 +93,7 @@ export class ContextMenu extends HTMLElement {
                 break;
 
             default:
-                console.log(`Sorry, we are out of ${arg.type}.`);
+                this._log({ref:'_setMenuByType', message:`ContextMenu Sorry _setMenuByType : we are out of ${arg.type}.`})
         }
     }
 
@@ -109,13 +111,18 @@ export class ContextMenu extends HTMLElement {
         this.setAttribute('style', `top:${arg.clientY}px; left:${arg.clientX}px`)
     }
 
+    private _log(options: LogElement) {
+        options.className = this.constructor.name;
+        return appLog(options);
+    }
+
     connectedCallback() {
-        console.log('ContextMEnu is connected!')
+        this._log({message:'Is connected!', color:'#cc5'})
         // calling IPC exposed from preload script
-        window.electron.ipcRenderer.on('ipc-open-contextmenu', (arg:any) => {
-            //console.log('ContextMEnu ipc-open-contextmenu', arg)
-            this._setMenuByType(arg);
-            this._setPosition(arg);
+        window.electron.ipcRenderer.on('ipc-open-contextMenu', (args:any) => {
+             this._log({ ref: 'ipc-open-contextMenu', args, color:'#b6bcff'})
+            this._setMenuByType(args);
+            this._setPosition(args);
             this.visible = true;
         });
     }

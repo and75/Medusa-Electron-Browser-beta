@@ -1,8 +1,8 @@
 
 import { WebviewTag } from "electron";
 import { bookmarkSvg, clipboardSvg, clockRotateLeft, slidersSvg, xmarkSvg, findSvg } from "./Img";
-
-
+import { LogElement } from "./../model";
+import { appLog } from "./../core";
 export class Panel extends HTMLElement {
 
 
@@ -113,8 +113,6 @@ export class Panel extends HTMLElement {
 
       const cardHeader = content.appendChild(document.createElement('div'));
       cardHeader.setAttribute('class', 'card-header');
-
-     
       
       let iconSvg = '';
       if(type=='bookmark'){
@@ -129,6 +127,7 @@ export class Panel extends HTMLElement {
       else if(type=='settings'){
          iconSvg=slidersSvg
       }
+
       if(iconSvg){
          const iconImg = cardHeader.appendChild(document.createElement('img'));
          iconImg.setAttribute('class', 'icon');
@@ -177,7 +176,7 @@ export class Panel extends HTMLElement {
    }
 
    _setWebView(webview: WebviewTag) {
-      console.log('_setWebview', webview)
+      this._log({ref:'_setWebView', message: webview.getAttribute('tab-id')})
       this.webview = webview;
    }
 
@@ -185,7 +184,15 @@ export class Panel extends HTMLElement {
       this.remove();
    }
 
-   connectedCallback() { }
+   private _log(options:LogElement){
+      options.className = this.constructor.name;
+      return appLog(options);
+   }
+
+   connectedCallback() {
+      this._log({message:'Is connected!', color:'#cc5'})
+   }
+
    disconnectedCallback() { }
 
 }

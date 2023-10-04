@@ -27,3 +27,9 @@ const electronHandler = {
 contextBridge.exposeInMainWorld('electron', electronHandler);
 
 export type ElectronHandler = typeof electronHandler;
+
+/**
+ * Disable dragging and selecting html elements (like links, images etc...) 
+ */
+document.addEventListener('dragover', event => event.preventDefault());
+document.addEventListener('drop', event => event.preventDefault());

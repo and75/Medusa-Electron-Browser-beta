@@ -1,5 +1,7 @@
 import { WebviewTag } from "electron";
 import { arrowLeft, arrowRight, arrowRotate } from "./Img";
+import { LogElement } from "./../model";
+import { appLog } from "./../core";
 
 export class NavMenu extends HTMLElement {
 
@@ -86,10 +88,9 @@ export class NavMenu extends HTMLElement {
                 margin-left:0;
             }
         `;
-
         this.shadowRoot.append(style, nav);
-
     }
+
     get canGoBack() {
         return this._canGoBack;
     }
@@ -113,6 +114,7 @@ export class NavMenu extends HTMLElement {
             this.forwardIcon.classList.remove('active')
         }
     }
+
     get canReload() {
         return this._canReload;
     }
@@ -126,7 +128,8 @@ export class NavMenu extends HTMLElement {
     }
 
     _initNav(webview: WebviewTag) {
-        console.log('_setWebview', webview)
+        this._log({ ref: '_initNav', message: 'tabId:' + webview.getAttribute('tab-id') })
+        this.canGoBack
         this.webview = webview;
     }
 
@@ -137,7 +140,7 @@ export class NavMenu extends HTMLElement {
     }
 
     _goBack(e: Event) {
-        console.log('Reload', this.webview, this.canGoBack)
+        //this._log(ref:'_goBack', message:this.canGoBack)
         if (this.canGoBack) {
             this.webview.stop();
             this.webview.goBack()
@@ -145,7 +148,7 @@ export class NavMenu extends HTMLElement {
     }
 
     _goForward(e: Event) {
-        console.log('GoForward', this.webview, this.canGoForward)
+        //this._log(ref:'_goForward', message:this.canGoForward)
         if (this.canGoForward) {
             this.webview.stop();
             this.webview.goForward();
@@ -153,7 +156,7 @@ export class NavMenu extends HTMLElement {
     }
 
     _reload(e: Event) {
-        console.log('canReload', this.webview, this.canReload)
+        //this._log(ref:'_reload', message:this.canReload)
         if (this.canReload) {
             this.webview.stop();
             this.webview.reload();
@@ -161,16 +164,15 @@ export class NavMenu extends HTMLElement {
     }
 
     _setStatus() {
-        if(!this.webview) return;
+        if (!this.webview) return;
         try {
             this.canGoBack = this.webview.canGoBack()
             this.canGoForward = this.webview.canGoForward()
             this.canReload = (!this.webview.isLoading()) ? true : false;
-            console.log(this.webview.canGoBack(), this.webview.canGoForward(), this.canReload)
+            this._log({ ref: '_setStatus', message: `${this.webview.canGoBack()}, ${this.webview.canGoForward()}, ${this.canReload}` })
         } catch (error) {
-            console.error(error)
+            console.error('NavMenu _setStatus', error)
         }
-        console.log('_setStatus', this.webview, this.canReload)
     }
 
     _reset() {
@@ -180,8 +182,15 @@ export class NavMenu extends HTMLElement {
         this.canReload = false;
     }
 
-    connectedCallback(){}
-    disconnectedCallback(){
+    private _log(options: LogElement) {
+        options.className = this.constructor.name;
+        return appLog(options);
+    }
+
+    connectedCallback() {
+        this._log({message:'Is connected!', color:'#cc5'})
+    }
+    disconnectedCallback() {
         this.backIcon.removeEventListener('click', this._goBack.bind(this))
         this.forwardIcon.removeEventListener('click', this._goForward.bind(this))
         this.reloadIcon.removeEventListener('click', this._reload.bind(this))

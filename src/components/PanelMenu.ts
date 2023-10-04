@@ -1,19 +1,18 @@
 
 import { WebviewTag } from "electron";
 import { bookmarkSvg, clipboardSvg, clockRotateLeft, slidersSvg, DevToolsSvg, TabsGroupSvg } from "./Img";
-
+import { LogElement } from "./../model";
+import { appLog } from "./../core";
 
 export class PanelMenu extends HTMLElement {
-
 
    bookmark: HTMLLIElement
    notes: HTMLLIElement
    history: HTMLLIElement
-   tabGroup : HTMLLIElement
+   tabGroup: HTMLLIElement
    settings: HTMLLIElement
    devtools: HTMLLIElement
    webview: WebviewTag | null
-
 
    constructor() {
 
@@ -23,7 +22,6 @@ export class PanelMenu extends HTMLElement {
 
       // Create a shadow root
       this.attachShadow({ mode: "open" }); // sets and returns 'this.shadowRoot'
-
 
       //Action Menu
       const actionMenu = document.createElement("ul");
@@ -81,7 +79,6 @@ export class PanelMenu extends HTMLElement {
 
       this.settings = settings;
 
-
       //Devtools
       const devtools = actionMenu.appendChild(document.createElement('li'));
       const devtoolsIcon = document.createElement('img');
@@ -90,7 +87,6 @@ export class PanelMenu extends HTMLElement {
       devtools.appendChild(devtoolsIcon);
       devtools.addEventListener('click', this._openDevTool.bind(this))
       this.devtools = devtools;
-
 
       const style = document.createElement("style");
       style.textContent = `
@@ -137,15 +133,15 @@ export class PanelMenu extends HTMLElement {
    }
 
    _setWebView(webview: WebviewTag) {
-      console.log('_setWebview', webview)
+      this._log({ ref: '_setWebView', message: webview.getAttribute('tab-id') })
       this.webview = webview;
    }
 
    _openPanel(e: Event) {
       const target = e.target as HTMLElement
       const type = target.getAttribute('panel');
-      console.log('PanelMenu _openPanel', type)
       if (type) {
+         this._log({ ref: '_openPanel', message: type })
          window.electron.ipcRenderer.sendMessage('ipc-open-sidepanel', { type: type });
       }
    }
@@ -158,9 +154,15 @@ export class PanelMenu extends HTMLElement {
       }
    }
 
-   _reset() { }
+   private _log(options: LogElement) {
+      options.className = this.constructor.name;
+      return appLog(options);
+   }
 
-   connectedCallback() { }
+   connectedCallback() {
+      this._log({message:'Is connected!', color:'#cc5'})
+   }
+
    disconnectedCallback() { }
 
 }

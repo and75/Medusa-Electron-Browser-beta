@@ -7,6 +7,15 @@
  */
 
 import { WebviewTag } from "electron";
+
+export interface LogElement {
+    className?:string
+    ref?:string
+    message?:string
+    args?: any
+    color?:string
+}
+
 export interface DATASettingsType {
     searchEngineUrl:string
     defaultTab:TabStatus
@@ -91,7 +100,6 @@ export interface AddressBarElement extends HTMLElement{
     bookmark: HTMLLIElement
     formAction:HTMLFormElement
     formInput:HTMLInputElement
-    _setUrl:any
     _setWebView:any;
 }
 

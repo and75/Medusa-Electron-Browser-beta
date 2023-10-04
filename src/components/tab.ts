@@ -1,7 +1,8 @@
 
-import { xmarkSvg, arrowRotateRight, MedusaLogo} from "./Img";
+import { xmarkSvg, arrowRotateRight, MedusaLogo } from "./Img";
 import { TabElement, HistoryElement } from '../model';
-import { on, emit } from '../core'
+import { LogElement } from "./../model";
+import { appLog } from "./../core";
 
 export class Tab extends HTMLElement {
 
@@ -17,59 +18,59 @@ export class Tab extends HTMLElement {
     tabTitle: HTMLSpanElement;
     listeners: EventListener[];
 
-    get id(){
+    get id() {
         return this.getAttribute('id')
     }
 
-    set id (value: string){
+    set id(value: string) {
         this.setAttribute('id', value)
     }
 
-    get groupId(){
+    get groupId() {
         return this.getAttribute('groupId')
     }
 
-    set groupId (value: string){
+    set groupId(value: string) {
         this.setAttribute('groupId', value)
     }
 
-    get time(){
+    get time() {
         return this.getAttribute('time')
     }
 
-    set time (value: string){
+    set time(value: string) {
         this.setAttribute('time', value)
     }
 
-    get isActive(){
+    get isActive() {
         return (this.hasAttribute('active')) ? true : false;
     }
 
-    set isActive (value: boolean){
-        if(value){this.setAttribute('active', '')}
-        else{this.removeAttribute('active')}
+    set isActive(value: boolean) {
+        if (value) { this.setAttribute('active', '') }
+        else { this.removeAttribute('active') }
     }
 
-    get onLoading(){
+    get onLoading() {
         return (this.hasAttribute('onLoading')) ? true : false;
     }
 
-    set onLoading (value: boolean){
-        if(value){this.setAttribute('onLoading', '')}
-        else{this.removeAttribute('onLoading')}
+    set onLoading(value: boolean) {
+        if (value) { this.setAttribute('onLoading', '') }
+        else { this.removeAttribute('onLoading') }
     }
 
     constructor() {
 
         super();
 
-         // Create a shadow root
-         this.attachShadow({ mode: "open" }); // sets and returns 'this.shadowRoot'
+        // Create a shadow root
+        this.attachShadow({ mode: "open" }); // sets and returns 'this.shadowRoot'
 
-         // Create some CSS to apply to the shadow DOM
+        // Create some CSS to apply to the shadow DOM
         const style = document.createElement("style");
         style.textContent = `
-            /* CSS truncated for brevity */
+             
              :host{
                 flex: 1;
                 display:flex;
@@ -132,7 +133,7 @@ export class Tab extends HTMLElement {
     }
 
 
-    initTab(options:any) {
+    initTab(options: any) {
 
         this.id = options.id;
         this.time = options.time;
@@ -145,7 +146,7 @@ export class Tab extends HTMLElement {
 
         this.tabIcon = MedusaLogo;
         this.listeners = [];
-       
+
 
         //Tab item
         if (this.isActive) {
@@ -182,6 +183,7 @@ export class Tab extends HTMLElement {
     }
 
     _closeTab() {
+        this._log({ref:'_closeTab', args:this.id});
         this.removeEventListener('click', this._handleTabClick.bind(this))
         const parent = this.parentElement;
         parent.removeChild(this);
@@ -199,9 +201,9 @@ export class Tab extends HTMLElement {
     }
 
     private _handleTabClick(event: any) {
-        console.log('_handleTabClick',event )
         event = event.composedPath()
         let target = event[0];
+        this._log({ref:'_handleTabClick', args:target});
         if (target.classList.contains('close-tab')) {
             this._handleCloseTab();
         }
@@ -211,7 +213,7 @@ export class Tab extends HTMLElement {
     }
 
     private _handleActiveTab() {
-        console.log('_handleActiveTab', this._getTabStatus())
+        this._log({ref:'_handleActiveTab', args:this._getTabStatus()})
         if (this.isActive === false) {
             window.electron.ipcRenderer.sendMessage('ipc-toogle-tab-active', this._getTabStatus());
         }
@@ -243,7 +245,7 @@ export class Tab extends HTMLElement {
         }
     }
 
-    setTabStatus(tab:TabElement){
+    _setTabStatus(tab: TabElement) {
         for (const [key, value] of Object.entries(tab)) {
             console.log(`${key}: ${value}`);
         }
@@ -254,10 +256,16 @@ export class Tab extends HTMLElement {
             id: this.id,
             groupId: this.groupId,
             isActive: this.isActive,
-            onLoading : this.onLoading, 
-            current:this.current
+            onLoading: this.onLoading,
+            current: this.current
         }
         return status;
     }
+
+    private _log(options: LogElement) {
+        options.className = this.constructor.name;
+        return appLog(options);
+    }
+    
 }
 customElements.define("tab-schedule", Tab);

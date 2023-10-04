@@ -1,5 +1,7 @@
 import { StarSvg } from "./Img";
 import { WebviewTag } from "electron";
+import { LogElement } from "./../model";
+import { appLog } from "./../core";
 
 export class AddressBar extends HTMLElement {
 
@@ -113,31 +115,38 @@ export class AddressBar extends HTMLElement {
         `;
 
         this.shadowRoot.append(style, formAction, actionMenu);
-
     }
 
     private _goTo(e: Event) {
         e.preventDefault;
         const target = e.target;
-        console.log('AddressBar _goTo', this.formInput.value);
+        //console.log('AddressBar _goTo', this.formInput.value);
         this.webview.stop()
         this.webview.loadURL(this.formInput.value);
     }
 
     _setWebView(webview: WebviewTag) {
-        console.log('_setWebview', webview)
+        //console.log('AddressBar _setWebview', webview)
         this.webview = webview;
         this._setUrl(webview.getURL())
     }
 
     private _setUrl(value: any) {
-        console.log('AddressBar _setUrl', value)
+        //console.log('AddressBar _setUrl', value)
         this.url = value;
     }
 
     _reset() { }
 
-    connectedCallback() { }
+    private _log(options: LogElement) {
+      options.className = this.constructor.name;
+      return appLog(options);
+    }
+
+    connectedCallback() { 
+      this._log({message:'Is connected!', color:'#cc5'})
+    }
+
     disconnectedCallback() { }
 
 }
