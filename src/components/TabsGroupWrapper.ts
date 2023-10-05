@@ -9,8 +9,7 @@
 import { plusSvg } from "./Img";
 import { TabElement, TabStatus, TabsGroupElement } from '../model';
 import { Tab } from "./Tab";
-import { LogElement } from "./../model";
-import { appLog } from "./../core";
+import { LoggerFactory, LoggerFactoryType } from "./../logger";
 
 
 
@@ -22,6 +21,7 @@ export class TabsGroupWrapper extends HTMLElement {
     groupsWrapper: HTMLDivElement
     tabs: Map<string, TabElement>
     tabsGroups: TabsGroupElement[]
+    private logger:LoggerFactoryType;
     
 
     get tabGroupList() {
@@ -37,6 +37,7 @@ export class TabsGroupWrapper extends HTMLElement {
         this.time = Date.now();
         this.isReady = false;
         this.tabs = new Map();
+        this.logger= LoggerFactory(this.constructor.name)
         this.createElement();
     }
 
@@ -209,20 +210,21 @@ export class TabsGroupWrapper extends HTMLElement {
 
     private _getNext(id: string) {
         let tabArray = [...this.tabs];
-        this._log({ref: '_getNext', args:tabArray});
         let index = tabArray.findIndex((el) => el[0] === id);
-        return {
+        const go =  {
             next: (tabArray[index + 1]) ? tabArray[index + 1][1] : null,
             prev: (tabArray[index - 1]) ? tabArray[index - 1][1] : null
         }
+        this.logger.logAction('_getNext', go)
+        return go;
     }
 
     private _closeTab(args: any) {
         try {
-            this._log({ref: '_closeTab', args});
+            this.logger.logAction('_closeTab', 'tabID : '+args.id)
             let find = this.tabs.get(args.id)
             let getTabNav = this._getNext(args.id);
-            find._closeTab(this.tabsWrapper);
+            find._closeTab();
             this.tabs.delete(args.id);
             this._toogleNextActive(args, getTabNav);
         } catch (error) {
@@ -231,7 +233,7 @@ export class TabsGroupWrapper extends HTMLElement {
     }
 
     private _handleNewTab(this: any) {
-        this._log({ref: '_handleNewTab'});
+        this.logger.logAction('_handleNewTab')
         window.electron.ipcRenderer.sendMessage('ipc-set-new-tab');
     }
 
@@ -269,47 +271,42 @@ export class TabsGroupWrapper extends HTMLElement {
 
     private _toogleLoading(args: any) {
         const find = this.tabs.get(args.tabID);
-        this._log({ref: '_toogleLoading',args});
+        this.logger.logAction('_toogleLoading', args)
         find._toogleLoadingIcon()
     }
 
-    private _log(options: LogElement) {
-        options.className = this.constructor.name;
-        return appLog(options);
-    }
-
     connectedCallback() {
-        this._log({message:'Is connected!', color:'#cc5'})
+        this.logger.log('Is connected!')
         window.electron.ipcRenderer.on('ipc-get-default', (args: any) => {
-            this._log({ref: 'ipc-get-default',args,color:'#b6bcff'});
+            this.logger.logIpc('ipc-get-default', args);
             this._initTabGroups(args);
         });
         window.electron.ipcRenderer.on('ipc-close-tab', (args: any) => {
-            this._log({ref: 'ipc-close-tab', args,color:'#b6bcff'});
+            this.logger.logIpc('ipc-close-tab', args)
             this._closeTab(args)
         });
         window.electron.ipcRenderer.on('ipc-set-new-tab', (args: any) => {
-            this._log({ref: 'ipc-set-new-tab', args,color:'#b6bcff'});
+            this.logger.logIpc('ipc-set-active-tab', args)
             this._initNewTab(args)
         });
         window.electron.ipcRenderer.on('ipc-toogle-tab-active', (args: any) => {
-            this._log({ref: 'ipc-toogle-tab-active', args,color:'#b6bcff'});
+            this.logger.logIpc('ipc-toogle-tab-active', args)
             this._toogleActive(args);
         })
         window.electron.ipcRenderer.on('ipc-page-favicon-updated', (args: any) => {
-            //this._log({ref: 'ipc-page-favicon-updated', args,color:'#b6bcff' });
+            this.logger.logIpc('ipc-page-favicon-updated', args)
             this._setFavIcon(args);
         })
         window.electron.ipcRenderer.on('ipc-update-tab-title', (args: any) => {
-            this._log({ref: 'ipc-update-tab-title', args,color:'#b6bcff'});
+            this.logger.logIpc('ipc-update-tab-title', args)
             this._setTabTitle(args);
         })
         window.electron.ipcRenderer.on('ipc-page-loading-start', (args: any) => {
-            this._log({ref: 'ipc-page-loading-start', args,color:'#b6bcff'});
+            this.logger.logIpc('ipc-page-loading-start', args)
             this._toogleLoading(args);
         })
         window.electron.ipcRenderer.on('ipc-page-loading-stop', (args: any) => {
-            this._log({ref: 'ipc-page-loading-stop', args,color:'#b6bcff'});
+            this.logger.logIpc('ipc-page-loading-stop', args)
             this._toogleLoading(args);
         })
     }

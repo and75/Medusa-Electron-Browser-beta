@@ -1,22 +1,16 @@
 
 import { xmarkSvg, arrowRotateRight, MedusaLogo } from "./Img";
 import { TabElement, HistoryElement } from '../model';
-import { LogElement } from "./../model";
-import { appLog } from "./../core";
+import { LoggerFactory,LoggerFactoryType } from "./../logger";
 
 export class Tab extends HTMLElement {
 
-
-    isClosed: boolean
-    current: HistoryElement
-
-    tabIcon: string;
-    favIcon: HTMLImageElement;
-    closeIcon: HTMLImageElement;
     title: string;
-    url: string;
-    tabTitle: HTMLSpanElement;
-    listeners: EventListener[];
+    private current: HistoryElement
+    private tabIcon: string;
+    private favIcon: HTMLImageElement;
+    private tabTitle: HTMLSpanElement;
+    private logger:LoggerFactoryType;
 
     get id() {
         return this.getAttribute('id')
@@ -63,6 +57,8 @@ export class Tab extends HTMLElement {
     constructor() {
 
         super();
+
+        this.logger = LoggerFactory(this.constructor.name);
 
         // Create a shadow root
         this.attachShadow({ mode: "open" }); // sets and returns 'this.shadowRoot'
@@ -141,12 +137,8 @@ export class Tab extends HTMLElement {
         this.groupId = options.groupId;
         this.isActive = options.isActive;
         this.onLoading = options.onLoading;
-        this.url = options.current.url;
         this.current = options.current;
-
         this.tabIcon = MedusaLogo;
-        this.listeners = [];
-
 
         //Tab item
         if (this.isActive) {
@@ -172,7 +164,6 @@ export class Tab extends HTMLElement {
         closeIcon.setAttribute("class", "close-tab");
         closeIcon.setAttribute('src', xmarkSvg);
         this.shadowRoot.appendChild(closeIcon);
-        this.closeIcon = closeIcon
 
         this.addEventListener('click', this._handleTabClick.bind(this) as EventListener, { capture: true })
 
@@ -183,10 +174,9 @@ export class Tab extends HTMLElement {
     }
 
     _closeTab() {
-        this._log({ref:'_closeTab', args:this.id});
+        this.logger.logAction('_closeTab', 'tabID : '+this.id)
         this.removeEventListener('click', this._handleTabClick.bind(this))
-        const parent = this.parentElement;
-        parent.removeChild(this);
+        this.remove();
     }
 
     _toogleActive(arg: TabElement) {
@@ -201,25 +191,27 @@ export class Tab extends HTMLElement {
     }
 
     private _handleTabClick(event: any) {
+        this.logger.logAction('_handleTabClick')
         event = event.composedPath()
         let target = event[0];
-        this._log({ref:'_handleTabClick', args:target});
         if (target.classList.contains('close-tab')) {
             this._handleCloseTab();
         }
         else {
+            this.logger.logAction('_handleTabClick', 'close')
             this._handleActiveTab();
         }
     }
 
     private _handleActiveTab() {
-        this._log({ref:'_handleActiveTab', args:this._getTabStatus()})
+        this.logger.logAction('_handleActiveTab', 'tabID : '+this.id)
         if (this.isActive === false) {
             window.electron.ipcRenderer.sendMessage('ipc-toogle-tab-active', this._getTabStatus());
         }
     }
 
     private _handleCloseTab() {
+        this.logger.logAction('_handleCloseTab', 'tabID : '+this.id)
         window.electron.ipcRenderer.sendMessage('ipc-close-tab', this._getTabStatus());
     }
 
@@ -260,11 +252,6 @@ export class Tab extends HTMLElement {
             current: this.current
         }
         return status;
-    }
-
-    private _log(options: LogElement) {
-        options.className = this.constructor.name;
-        return appLog(options);
     }
     
 }

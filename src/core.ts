@@ -22,7 +22,9 @@ export function on(emitter: TabsGroupWrapper | Tab, type: string, fn: (detail: s
 }
 
 export function appLog(options:LogElement){
-  let color = ['#7E57C2', '#ffc100', '#dddddd']
+
+  let color = ['#7E57C2', '#ffc100', '#dddddd'];
+
   if(!options.className) {options.className = ''}
   if(!options.ref) {options.ref = ''}
   if(!options.message){options.message = ''}
@@ -31,12 +33,15 @@ export function appLog(options:LogElement){
     if(!options.ref && options.message){color[2] = options.color}
     else {color[1] = options.color}
   }
+
   const strMess = `%c${options.className}%c${options.ref}%c${options.message}`;
+
   return console.trace(strMess,  
     `background-color:${color[0]};color:#fff;margin-left:4px;padding:2px;border-radius:3px`, 
     `background-color:${color[1]};margin-left:4px;padding:2px;border-radius:3px`, 
     `background-color:${color[2]};margin-left:2px;margin-left:4px;padding:2px;border-radius:3px`, 
-    options.args)
+    options.args);
+    
 }
 
 

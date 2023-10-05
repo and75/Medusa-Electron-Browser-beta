@@ -9,14 +9,19 @@
 import { TabsGroupWrapper } from "./TabsGroupWrapper";
 import { WebviewsWrapper } from "./WebviewsWrapper";
 import { ContextMenu } from "./ContextMenu"
-import { LogElement } from "./../model";
-import { appLog } from "./../core";
+import { LoggerFactory,LoggerFactoryType } from "./../logger";
 
-export class AppRoot extends HTMLElement {
+
+export class AppRoot extends HTMLElement{
+
+  logger:LoggerFactoryType;
 
   constructor() {
 
     super();
+
+    //SetLogger
+    this.logger = LoggerFactory(this.constructor.name);
 
     this.attachShadow({ mode: "open" }); // sets and returns 'this.shadowRoot'
 
@@ -50,13 +55,9 @@ export class AppRoot extends HTMLElement {
     //this.shadowRoot.append(style);
   }
 
-  private _log(options: LogElement) {
-    options.className = this.constructor.name;
-    return appLog(options);
-  }
 
   connectedCallback() {
-    this._log({message:'Is connected!', color:'#cc5'})
+    this.logger.log('Is connected!');
     // calling IPC exposed from preload script
     window.electron.ipcRenderer.sendMessage('ipc-get-default', ['app-root']);
   }

@@ -12,8 +12,7 @@ import { NavMenu } from "./NavMenu";
 import { AddressBar } from "./AddressBar";
 import { PanelMenu } from "./PanelMenu";
 import { Panel } from "./Panel";
-import { LogElement } from "./../model";
-import { appLog } from "./../core";
+import { LoggerFactory, LoggerFactoryType } from "./../logger";
 
 export class WebviewsWrapper extends HTMLElement {
 
@@ -25,20 +24,19 @@ export class WebviewsWrapper extends HTMLElement {
     addressBar: AddressBarElement
     panelMenu: PanelMenuElement
     webviews: WebviewTag[]
-    eventsManager: any[]
-    activeWebView: WebviewTag
-    sidePanel: HTMLElement | null
+    private eventsManager: any[]
+    private activeWebView: WebviewTag
+    private sidePanel: HTMLElement | null
+    private logger: LoggerFactoryType;
 
     constructor() {
 
-        // Always call super first in constructor
         super();
-
+        this.logger = LoggerFactory(this.constructor.name);
         this.webviews = [];
         this.sidePanel = null;
         this.eventsManager = [];
 
-        // write element functionality in here
         // Create a shadow root
         this.attachShadow({ mode: "open" }); // sets and returns 'this.shadowRoot'
 
@@ -294,7 +292,7 @@ export class WebviewsWrapper extends HTMLElement {
 
     _domReady(e: any) {
         let target = e.target as HTMLElement;
-        this._log({ref:'_domReady', message:"isActive "+target.hasAttribute('active')})
+        this.logger.logAction('_domReady', "isActive " + target.hasAttribute('active'))
         if (target.hasAttribute('active')) {
             this.navMenu._initNav(target);
             this.addressBar._setWebView(e.target);
@@ -309,64 +307,59 @@ export class WebviewsWrapper extends HTMLElement {
         let target = e.target as HTMLElement;
         let tabID = target.getAttribute('tab-id');
         let args = { tabID };
-        this._log({ref:'_loadingStart', args})
         this.navMenu._setStatus();
+        this.logger.logAction('_loadingStart', args)
         window.electron.ipcRenderer.sendMessage('ipc-page-loading-start', args)
     }
 
     _loadingStop(e: any) {
         let target = e.target as HTMLElement;
         let tabID = target.getAttribute('tab-id');
-        let arg = { tabID };
+        let args = { tabID };
         this.navMenu._setStatus();
-        this._log({ ref: '_loadingStop', args: arg })
-        window.electron.ipcRenderer.sendMessage('ipc-page-loading-stop', arg)
+        this.logger.logAction('_loadingStop', args)
+        window.electron.ipcRenderer.sendMessage('ipc-page-loading-stop', args)
     }
 
     _updateTabTitle(e: any) {
         let target = e.target as HTMLElement;
         let title = e.title as any
         let tabID = target.getAttribute('tab-id');
-        let arg = { title, tabID };
-        this._log({ ref: '_updateTabTitle', args: arg })
-        window.electron.ipcRenderer.sendMessage('ipc-update-tab-title', arg)
+        let args = { title, tabID };
+        this.logger.logAction('_updateTabTitle', args)
+        window.electron.ipcRenderer.sendMessage('ipc-update-tab-title', args)
     }
 
     _updateTabFavIcon(e: any) {
         let target = e.target as HTMLElement;
         let favicons = e.favicons as any
         let tabID = target.getAttribute('tab-id');
-        let arg = { favicons, tabID };
-        //this._log({ ref: '_updateTabFavIcon', args: arg })
-        window.electron.ipcRenderer.sendMessage('ipc-page-favicon-updated', arg)
+        let args = { favicons, tabID };
+        //this.logger.logAction('_updateTabFavIcon', args)
+        window.electron.ipcRenderer.sendMessage('ipc-page-favicon-updated', args)
     }
 
-    _openSidePanel(arg: any) {
+    _openSidePanel(args: any) {
         if (this.sidePanel) this.sidePanel.remove();
         const sidePanel = new Panel();
-        sidePanel._createPanel(arg.type);
+        sidePanel._createPanel(args.type);
         this.sidePanel = sidePanel
-        this._log({ ref: '_openSidePanel', args: arg })
+        this.logger.logAction('_openSidePanel', args)
         return this.panelContainer.appendChild(this.sidePanel);
     }
 
-    private _log(options: LogElement) {
-        options.className = this.constructor.name;
-        return appLog(options);
-    }
-
     connectedCallback() {
-        this._log({message:'Is connected!', color:'#cc5'})
+        this.logger.log('Is connected!')
         window.electron.ipcRenderer.on('ipc-set-active-tab', (args: TabStatus) => {
-            this._log({ ref: 'ipc-set-active-tab', args, color:'#b6bcff'})
+            this.logger.logIpc('ipc-set-active-tab', args)
             this._initWebview(args);
         });
         window.electron.ipcRenderer.on('ipc-close-tab', (args: any) => {
-            this._log({ ref: 'ipc-close-tab',args, color:'#b6bcff'})
+            this.logger.logIpc('ipc-close-tab', args)
             this._deleteWebView(args.id)
         });
         window.electron.ipcRenderer.on('ipc-open-sidepanel', (args: any) => {
-            this._log({ ref: 'ipc-open-sidepanel', args, color:'#b6bcff'})
+            this.logger.logIpc('ipc-open-sidepanel', args)
             this._openSidePanel(args)
         })
     }
