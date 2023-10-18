@@ -1,13 +1,13 @@
-import { TabsGroupWrapper } from './components/TabsGroupWrapper';
+import { TabsGroupWrapper } from './components/TabsBarWrapper';
 import { Tab } from './components/Tab'
 import { LogElement } from './model';
 
 export function generateRandomColor() {
-  let maxVal = 0xFFFFFF; // 16777215
+  const maxVal = 0xFFFFFF; // 16777215
   let randomNumber = Math.random() * maxVal;
   randomNumber = Math.floor(randomNumber);
-  let randomString = randomNumber.toString(16);
-  let randColor = randomString.padStart(6, randomString);
+  const randomString = randomNumber.toString(16);
+  const randColor = randomString.padStart(6, randomString);
   return `#${randColor.toUpperCase()}`
 }
 
@@ -23,7 +23,7 @@ export function on(emitter: TabsGroupWrapper | Tab, type: string, fn: (detail: s
 
 export function appLog(options:LogElement){
 
-  let color = ['#7E57C2', '#ffc100', '#dddddd'];
+  const color = ['#7E57C2', '#ffc100', '#dddddd'];
 
   if(!options.className) {options.className = ''}
   if(!options.ref) {options.ref = ''}
@@ -33,7 +33,7 @@ export function appLog(options:LogElement){
     if(!options.ref && options.message){color[2] = options.color}
     else {color[1] = options.color}
   }
-
+  
   const strMess = `%c${options.className}%c${options.ref}%c${options.message}`;
 
   return console.trace(strMess,  

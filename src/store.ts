@@ -4,7 +4,7 @@ const getDateTime = () => {
   return new Date().getTime();
 }
 const DATAColors :string[] = [
-  '#9575CD', '#7E57C2','#5E35B1','#512DA8','#4527A0','#311B92','#B388FF','#7C4DFF','#651FFF','#6200EA'
+  '#9575CD', 'var(--primary)','#5E35B1','#512DA8','#4527A0','#311B92','#B388FF','#7C4DFF','#651FFF','#6200EA'
 ]
 const DATASettings: DATASettingsType = {
   searchEngineUrl: "https://duckduckgo.com/?q=",
@@ -135,7 +135,7 @@ const DefaultTabsGroups: TabsGroupElement[] =
       time: getDateTime(),
       isActive: false,
       title: 'Search',
-      color:'#7E57C2',
+      color:'var(--primary-light)',
       current: {
         title: 'Google',
         url: 'https://www.google.com/',
@@ -174,7 +174,7 @@ export const store = {
   },
   getTabsGroups : ()=>{
     const TabsGroups = DefaultTabsGroups.map((el)=>{
-       let elTabs = DATATabs.filter(t=>t.groupId==el.id) 
+       const elTabs = DATATabs.filter(t=>t.groupId==el.id) 
        el.tabs = elTabs
        return el
     })

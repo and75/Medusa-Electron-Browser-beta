@@ -90,46 +90,43 @@ export class PanelMenu extends HTMLElement {
 
       const style = document.createElement("style");
       style.textContent = `
-
              :host{
                display: flex;
                flex: 0;
                align-items: center;
                justify-content: end;
-               gap: 10px;
+               gap: var(--default-spacing);
              }
-
              :host ul.action-menu{
                 all: unset;
                 display: flex;
                 align-items: end;
-                gap: 10px;
+                gap: var(--default-spacing);
                 list-style: none;
              }
              :host ul.action-menu li {
                all: unset;
                display: flex;
                align-items: center;
-               background: #e7e7e7;
-               border-radius: 50%;
+               background: var(--btn-bg-color);
+               border-radius: var(--brd-radius-round);
                width: 40px;
                height: 40px;
                cursor: pointer;
                justify-content: center;
                transition: all 0.2s ease-out;
            }
-           
            :host ul.action-menu li img {
                all: unset;
                height: 20px;
            }
            :host ul.action-menu li:hover{
-                background: #dbd4e7;
+                background: var(--primary-light);
            }
         `;
 
       this.shadowRoot.append(style, actionMenu);
-
+      
    }
 
    _setWebView(webview: WebviewTag) {
@@ -146,7 +143,7 @@ export class PanelMenu extends HTMLElement {
       }
    }
 
-   _openDevTool(e: Event) {
+   _openDevTool() {
       if (this.webview.isDevToolsOpened()) {
          this.webview.closeDevTools();
       } else {
@@ -163,7 +160,7 @@ export class PanelMenu extends HTMLElement {
       this._log({message:'Is connected!', color:'#cc5'})
    }
 
-   disconnectedCallback() { }
+   // disconnectedCallback() { }
 
 }
 customElements.define("panel-menu", PanelMenu);

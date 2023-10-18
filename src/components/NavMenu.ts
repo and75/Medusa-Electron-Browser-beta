@@ -62,11 +62,15 @@ export class NavMenu extends HTMLElement {
                 padding: 0;
             }
             ul.nav li{
-                background: #e7e7e7;;
-                border-radius: 50%;
-                padding: 10px;
+                background: var(--btn-bg-color);
+                border-radius: var(--brd-radius-round);
+                padding: var(--default-spacing);
                 line-height: 0;
-                margin-right: 10px; 
+                margin-right: var(--default-spacing);
+                transition: all 0.2s ease-out;
+            }
+            ul.nav li:hover{
+                background: var(--btn-bg-color-hover);
             }
             ul.nav li:last-child{
                 margin-right:0;

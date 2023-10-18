@@ -1,6 +1,6 @@
 
 import { xmarkSvg, arrowRotateRight, MedusaLogo } from "./Img";
-import { TabElement, HistoryElement } from '../model';
+import { TabElement, HistoryElement, TabStatus } from '../model';
 import { LoggerFactory,LoggerFactoryType } from "./../logger";
 
 export class Tab extends HTMLElement {
@@ -71,12 +71,12 @@ export class Tab extends HTMLElement {
                 flex: 1;
                 display:flex;
                 align-items:center;
-                gap:10px;
-                background:#dbdbdb;
-                padding: 7px 10px 9px;
+                gap:var(--default-spacing);
+                background:var(--grey);
+                padding: 7px var(--default-spacing) 9px;
                 border-top-left-radius: 10px;
                 border-top-right-radius: 10px;
-                border-right: 1px solid #777;
+                border-right: 1px solid var(--dark-grey);
                 cursor: pointer;
                 margin-top: 1px;
                 max-width: 180px;
@@ -165,22 +165,21 @@ export class Tab extends HTMLElement {
         closeIcon.setAttribute('src', xmarkSvg);
         this.shadowRoot.appendChild(closeIcon);
 
-        this.addEventListener('click', this._handleTabClick.bind(this) as EventListener, { capture: true })
-
         if (this.isActive) {
             window.electron.ipcRenderer.sendMessage('ipc-set-active-tab', this._getTabStatus());
+            this._handleActiveTab();
         }
 
     }
 
     _closeTab() {
         this.logger.logAction('_closeTab', 'tabID : '+this.id)
-        this.removeEventListener('click', this._handleTabClick.bind(this))
         this.remove();
     }
 
-    _toogleActive(arg: TabElement) {
-        if (this.id != arg.id) {
+    _toogleActive(e:CustomEvent) {
+        const args = e.detail;
+        if (this.id != args.id) {
             this.isActive = false;
             this.classList.remove("active");
         } else {
@@ -193,21 +192,19 @@ export class Tab extends HTMLElement {
     private _handleTabClick(event: any) {
         this.logger.logAction('_handleTabClick')
         event = event.composedPath()
-        let target = event[0];
+        const target = event[0];
         if (target.classList.contains('close-tab')) {
             this._handleCloseTab();
         }
         else {
-            this.logger.logAction('_handleTabClick', 'close')
             this._handleActiveTab();
         }
     }
 
     private _handleActiveTab() {
-        this.logger.logAction('_handleActiveTab', 'tabID : '+this.id)
-        if (this.isActive === false) {
-            window.electron.ipcRenderer.sendMessage('ipc-toogle-tab-active', this._getTabStatus());
-        }
+        this.logger.logAction('_handleActiveTab', 'tabID : '+this.id);
+        const event = new CustomEvent("toogle-active-tab", { bubbles: true, detail: this._getTabStatus() });
+        self.dispatchEvent(event);
     }
 
     private _handleCloseTab() {
@@ -244,7 +241,7 @@ export class Tab extends HTMLElement {
     }
 
     _getTabStatus() {
-        let status = {
+        const status = {
             id: this.id,
             groupId: this.groupId,
             isActive: this.isActive,
@@ -252,6 +249,16 @@ export class Tab extends HTMLElement {
             current: this.current
         }
         return status;
+    }
+
+    connectedCallback(){
+        self.addEventListener('toogle-active-tab', this._toogleActive.bind(this));
+        this.addEventListener('click', this._handleTabClick.bind(this) as EventListener, { capture: true })
+    }
+
+    disconnectedCallback() {
+        self.removeEventListener('toogle-active-tab', this._toogleActive.bind(this))
+        this.removeEventListener('click', this._handleTabClick.bind(this));
     }
     
 }

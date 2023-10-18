@@ -6,10 +6,11 @@
  * @copyright Andrea Porcella / Bellville-system 2023
  */
 
-import { TabsGroupWrapper } from "./TabsGroupWrapper";
+import { TabsGroupWrapper } from "./TabsBarWrapper";
 import { WebviewsWrapper } from "./WebviewsWrapper";
 import { ContextMenu } from "./ContextMenu"
 import { LoggerFactory,LoggerFactoryType } from "./../logger";
+
 
 
 export class AppRoot extends HTMLElement{
@@ -62,9 +63,9 @@ export class AppRoot extends HTMLElement{
     window.electron.ipcRenderer.sendMessage('ipc-get-default', ['app-root']);
   }
 
-  attributeChangedCallback(attrName: any, oldVal: any, newVal: any) {
-    //console.log('App-root attributeChangedCallback!', attrName, oldVal, newVal);
-  }
+  // attributeChangedCallback(attrName: any, oldVal: any, newVal: any) {
+  //   //console.log('App-root attributeChangedCallback!', attrName, oldVal, newVal);
+  // }
 
 }
 customElements.define("app-root", AppRoot);

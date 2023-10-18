@@ -4,6 +4,7 @@ export type LoggerFactoryType = {
     log:(ref:string, ...mess:any)=>void
     logAction:(ref:string, ...mess:any)=>void
     logIpc:(ref:string, ...mess:any)=>void
+    logError:(ref:string, ...mess:any)=>void
 }
 
 export function LoggerFactory(className:string){
@@ -13,7 +14,8 @@ export function LoggerFactory(className:string){
         ref:'#ffc100',
         info:'#cc5',
         ipc:'#b6bcff',
-        mess:'#dddddd'
+        mess:'#dddddd',
+        error: 'red'
     }
     
     const formatMess = (ref:string|null, data:any[])=>{
@@ -55,10 +57,20 @@ export function LoggerFactory(className:string){
               ...data);
     };
 
+    const logError = (ref:string, ...mess:any)=>{
+        const [str, data] = formatMess(ref, mess);
+        return console.trace(str,  
+              `background-color:${color.className};color:#fff;margin-left:4px;padding:2px;border-radius:3px`, 
+              `background-color:${color.error};color:#fff;margin-left:4px;padding:2px;border-radius:3px`, 
+              `background-color:${color.error};color:#fff;margin-left:2px;margin-left:4px;padding:2px;border-radius:3px`, 
+              ...data);
+    };
+
     return {
         log,
         logAction,
-        logIpc
+        logIpc,
+        logError
     }
 
 }

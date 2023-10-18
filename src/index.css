@@ -1,3 +1,31 @@
+  
+  :root {
+  /**
+   * The height of the title bar area on Win32 platforms
+   * If changed, update titleBarHeight in 'app/src/ui/dialog/dialog.tsx'
+  */
+  --win32-title-bar-height: 28px;
+  --win32-title-bar-background-color: #{$gray-900};
+
+  /**
+   * The height of the title bar area on darwin platforms
+   * If changed, update titleBarHeight in 'app/src/ui/dialog/dialog.tsx'
+  */
+  --darwin-title-bar-height: 22px;
+  --white:#ffffff;
+  --black: #000000;
+  --primary: #7e57c2;
+  --primary-light:#dbd4e7;
+  --grey:#dbdbdb;
+  --dark-grey:#777777;
+  --light-grey: #efefef;
+  --btn-bg-color:#e7e7e7;
+  --btn-bg-color-hover: var(--primary-light);
+
+  --default-spacing:10px;
+  --brd-radius-round: 50%;
+  }
+
 /*
   1. Use a more-intuitive box-sizing model.
 */
@@ -64,6 +92,7 @@ body {
   height:200px;
   left: calc(50vw - 100px);
 }
+
 /** Grid Layout **/
 .app-wrapper{
   display: grid;
@@ -97,8 +126,8 @@ body {
 }
 .app-pannel .header,
 .app-pannel .footer{
-  padding: 10px 10px
+  padding: var(--default-spacing) var(--default-spacing)
 }
 .app-pannel .content{
-  padding: 0 10px
+  padding: 0 var(--default-spacing)
 }

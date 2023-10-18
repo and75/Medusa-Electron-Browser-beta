@@ -3,15 +3,14 @@ import { WebviewTag } from "electron";
 import { bookmarkSvg, clipboardSvg, clockRotateLeft, slidersSvg, xmarkSvg, findSvg } from "./Img";
 import { LogElement } from "./../model";
 import { appLog } from "./../core";
-export class Panel extends HTMLElement {
 
+export class Panel extends HTMLElement {
 
    search: HTMLDivElement | null;
    searchForm: HTMLFormElement | null;
    searchInput: HTMLInputElement | null;
    content: HTMLDivElement | null;
    webview: WebviewTag | null
-
 
    constructor() {
 
@@ -26,9 +25,9 @@ export class Panel extends HTMLElement {
       style.textContent = `
       :host {
          all: unset;
-         display:block;
+         display: block;
          width: calc(100vw - 70vw);
-         padding: 15px 10px;
+         padding: var(--default-spacing) 5px;
          box-sizing: border-box;
          line-height: 0;
       }
@@ -37,13 +36,13 @@ export class Panel extends HTMLElement {
          background: #fff;
          padding: 15px 0;
          border-radius: 10px;
-         height: calc(100vh - 175px);
+         height: calc(100vh - 165px);
          box-shadow: 0px 0px 4px #cfcfcf;
       }
       .card-header {
          display:flex;
          align-items:center;
-         gap: 10px;
+         gap: var(--default-spacing);
          font-size: 14px;
          font-weight: 600;
          color: #8f8f8f;
@@ -62,7 +61,7 @@ export class Panel extends HTMLElement {
          all: unset;
          display:flex;
          align-items:center;
-         gap: 10px;
+         gap: var(--default-spacing);
          list-style:none;
       } 
       .card-header ul.action-menu li{
@@ -79,8 +78,8 @@ export class Panel extends HTMLElement {
          all: unset;
          display: flex;
          align-items: center;
-         gap: 10px;
-         padding: 5px 10px;
+         gap: var(--default-spacing);
+         padding: 5px var(--default-spacing);
          border: 1px solid #ccc;
          border-radius: 10px;
          margin: 15px;
@@ -133,7 +132,6 @@ export class Panel extends HTMLElement {
          iconImg.setAttribute('class', 'icon');
          iconImg.setAttribute('src', iconSvg);
       }
-
 
       const title = cardHeader.appendChild(document.createElement('div'));
       title.setAttribute('class', 'title');
@@ -193,7 +191,7 @@ export class Panel extends HTMLElement {
       this._log({message:'Is connected!', color:'#cc5'})
    }
 
-   disconnectedCallback() { }
+   // disconnectedCallback() { }
 
 }
 customElements.define("side-panel", Panel);

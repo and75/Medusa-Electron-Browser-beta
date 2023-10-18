@@ -48,6 +48,7 @@ export interface TabElement extends HTMLElement{
     _getTabStatus?:any
     _toogleActive?:any
     _closeTab?:any
+    _handleActiveTab?:any
 }
 
 export interface TabStatus{

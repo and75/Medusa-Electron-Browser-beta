@@ -1,10 +1,10 @@
-import { plusSvg, saveSvg, xmarkSvg,folderMinusSvg } from "./Img";
-import { LogElement } from "./../model";
-import { appLog } from "./../core";
+import { plusSvg, saveSvg, folderMinusSvg } from "./Img";
+import { LoggerFactory, LoggerFactoryType } from "./../logger";
 
 export class ContextMenu extends HTMLElement {
 
     menu: HTMLElement
+    logger:LoggerFactoryType
 
     set visible(value: boolean) {
         if (value) { this.setAttribute('visible', '') }
@@ -12,6 +12,9 @@ export class ContextMenu extends HTMLElement {
     }
     constructor() {
         super();
+
+        // Set logger
+        this.logger = LoggerFactory(this.constructor.name);
 
         // Create a shadow root
         this.attachShadow({ mode: "open" });
@@ -40,7 +43,7 @@ export class ContextMenu extends HTMLElement {
             align-items: center;
             gap:8px;
             width: 160px;
-            padding: 5px 10px 5px;
+            padding: 5px var(--default-spacing) 5px;
             font-size: 12px;
             color: #000;
             cursor:pointer;
@@ -53,13 +56,13 @@ export class ContextMenu extends HTMLElement {
         :host .item:first-child{
             border-top-right-radius: 5px;
             border-top-left-radius: 5px;
-            padding-top: 10px;
+            padding-top: var(--default-spacing);
         }
         
         :host .item:last-child{
             border-bottom-right-radius: 5px;
             border-bottom-left-radius: 5px;
-            padding-bottom: 10px;
+            padding-bottom: var(--default-spacing);
         }
         :host .item:hover {
             background:#dedede;
@@ -81,19 +84,20 @@ export class ContextMenu extends HTMLElement {
         }
         
         switch (arg.type) {
-            case 'tabbar-group':
+            case 'tabbar-group': {
                 const menu = document.createElement('div');
                 menu.setAttribute('class', 'list');
-                let add = this._createMenuItem('Add new tab on group',plusSvg )
-                let save = this._createMenuItem('Save group',saveSvg)
-                let deleteG = this._createMenuItem('Delete group',folderMinusSvg)
+                const add = this._createMenuItem('Add new tab on group',plusSvg )
+                const save = this._createMenuItem('Save group',saveSvg)
+                const deleteG = this._createMenuItem('Delete group',folderMinusSvg)
                 menu.append(add, save, deleteG);
-                menu.oncontextmenu = (e) => { this.visible = null }
+                menu.oncontextmenu = () => { this.visible = null }
                 this.shadowRoot.append(menu);
                 break;
-
-            default:
-                this._log({ref:'_setMenuByType', message:`ContextMenu Sorry _setMenuByType : we are out of ${arg.type}.`})
+            }
+            default:{
+                this.logger.logError('_setMenuByType', `ContextMenu Sorry _setMenuByType : we are out of ${arg.type}.`)
+            }
         }
     }
 
@@ -111,16 +115,11 @@ export class ContextMenu extends HTMLElement {
         this.setAttribute('style', `top:${arg.clientY}px; left:${arg.clientX}px`)
     }
 
-    private _log(options: LogElement) {
-        options.className = this.constructor.name;
-        return appLog(options);
-    }
-
     connectedCallback() {
-        this._log({message:'Is connected!', color:'#cc5'})
+        this.logger.log('Is connected!')
         // calling IPC exposed from preload script
-        window.electron.ipcRenderer.on('ipc-open-contextMenu', (args:any) => {
-             this._log({ ref: 'ipc-open-contextMenu', args, color:'#b6bcff'})
+        window.electron.ipcRenderer.on('ipc-open-contextmenu', (args:any) => {
+            this.logger.logIpc('ipc-open-contextmenu', args)
             this._setMenuByType(args);
             this._setPosition(args);
             this.visible = true;

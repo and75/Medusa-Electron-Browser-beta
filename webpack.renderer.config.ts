@@ -1,9 +1,4 @@
 import type { Configuration } from 'webpack';
-
-const path = require('path');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
-
-
 import { rules } from './webpack.rules';
 import { plugins } from './webpack.plugins';
 

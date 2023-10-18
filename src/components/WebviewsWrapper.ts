@@ -23,7 +23,7 @@ export class WebviewsWrapper extends HTMLElement {
     navMenu: NavMenuElement
     addressBar: AddressBarElement
     panelMenu: PanelMenuElement
-    webviews: WebviewTag[]
+    webviews: WebviewTag[] 
     private eventsManager: any[]
     private activeWebView: WebviewTag
     private sidePanel: HTMLElement | null
@@ -57,9 +57,9 @@ export class WebviewsWrapper extends HTMLElement {
                 grid-area: action-container;
                 justify-self: stretch;
                 display: flex;
-                gap:10px;
+                gap:var(--default-spacing);
                 align-items: center;
-                padding: 0 10px;
+                padding: 0 var(--default-spacing);
             }
             .loader-container{
                 grid-area: loader-container;
@@ -88,7 +88,7 @@ export class WebviewsWrapper extends HTMLElement {
             .loader.active .loader__element{
                 height: 5px;
                 width: 100%;
-                background:#7E57C2;
+                background:var(--primary);
              }
              .loader .loader__element:before,
              .loader.active .loader__element:before {
@@ -185,15 +185,16 @@ export class WebviewsWrapper extends HTMLElement {
     }
 
     _deleteWebView(id: string): WebviewTag {
-        let find = this._existWebView(id);
-        if (find) {
-            find.stop();
-            this._removeAllHandler(find);
-            this.shadowRoot.removeChild(find);
-            let findIndex = this.webviews.findIndex(el => el.id == find.id);
+        const findWebView: WebviewTag | undefined = this._existWebView('webview-tab-' + id)
+        this.logger.logAction('_deleteWebView', findWebView)
+        if (findWebView) {
+            findWebView.stop();
+            this._removeAllHandler(findWebView);
+            this.shadowRoot.removeChild(findWebView);
+            const findIndex = this.webviews.findIndex(el => el.id == findWebView.id);
             this.webviews.splice(findIndex, 1);
         }
-        return find;
+        return findWebView;
     }
 
     _createWebWiew(tab: TabStatus) {
@@ -201,7 +202,7 @@ export class WebviewsWrapper extends HTMLElement {
         wv.setAttribute('src', tab.current.url);
         wv.setAttribute('id', 'webview-tab-' + tab.id);
         wv.setAttribute('tab-id', tab.id);
-        wv.setAttribute('preload', 'file://' + window.electron.webviewpreloadPath);
+        //wv.setAttribute('preload', 'file://' + window.electron.webviewpreloadPath);
         this.webviews.push(wv);
         this.shadowRoot.append(wv);
         return wv;
@@ -282,7 +283,7 @@ export class WebviewsWrapper extends HTMLElement {
     }
 
     _removeAllHandler(el: WebviewTag | HTMLElement) {
-        this.eventsManager.forEach((item, index) => {
+        this.eventsManager.forEach((item) => {
             if (item.el == el) {
                 item.el.PointerEvent
                 item.el.removeEventListener(item.name, item.action);
@@ -291,7 +292,7 @@ export class WebviewsWrapper extends HTMLElement {
     }
 
     _domReady(e: any) {
-        let target = e.target as HTMLElement;
+        const target = e.target as HTMLElement;
         this.logger.logAction('_domReady', "isActive " + target.hasAttribute('active'))
         if (target.hasAttribute('active')) {
             this.navMenu._initNav(target);
@@ -304,37 +305,37 @@ export class WebviewsWrapper extends HTMLElement {
     }
 
     _loadingStart(e: any) {
-        let target = e.target as HTMLElement;
-        let tabID = target.getAttribute('tab-id');
-        let args = { tabID };
+        const target = e.target as HTMLElement;
+        const tabID = target.getAttribute('tab-id');
+        const args = { tabID };
         this.navMenu._setStatus();
         this.logger.logAction('_loadingStart', args)
         window.electron.ipcRenderer.sendMessage('ipc-page-loading-start', args)
     }
 
     _loadingStop(e: any) {
-        let target = e.target as HTMLElement;
-        let tabID = target.getAttribute('tab-id');
-        let args = { tabID };
+        const target = e.target as HTMLElement;
+        const tabID = target.getAttribute('tab-id');
+        const args = { tabID };
         this.navMenu._setStatus();
         this.logger.logAction('_loadingStop', args)
         window.electron.ipcRenderer.sendMessage('ipc-page-loading-stop', args)
     }
 
     _updateTabTitle(e: any) {
-        let target = e.target as HTMLElement;
-        let title = e.title as any
-        let tabID = target.getAttribute('tab-id');
-        let args = { title, tabID };
+        const target = e.target as HTMLElement;
+        const title = e.title as any
+        const tabID = target.getAttribute('tab-id');
+        const args = { title, tabID };
         this.logger.logAction('_updateTabTitle', args)
         window.electron.ipcRenderer.sendMessage('ipc-update-tab-title', args)
     }
 
     _updateTabFavIcon(e: any) {
-        let target = e.target as HTMLElement;
-        let favicons = e.favicons as any
-        let tabID = target.getAttribute('tab-id');
-        let args = { favicons, tabID };
+        const target = e.target as HTMLElement;
+        const favicons = e.favicons as any
+        const tabID = target.getAttribute('tab-id');
+        const args = { favicons, tabID };
         //this.logger.logAction('_updateTabFavIcon', args)
         window.electron.ipcRenderer.sendMessage('ipc-page-favicon-updated', args)
     }
@@ -365,4 +366,4 @@ export class WebviewsWrapper extends HTMLElement {
     }
 
 }
-customElements.define("app-webview", WebviewsWrapper);
+customElements.define("webviews-wrapper", WebviewsWrapper);

@@ -1,9 +1,8 @@
 //Import app elements
 import './index.css';
 import './components/ContextMenu';
-import './components/TabsGroupWrapper';
+import './components/TabsBarWrapper';
 import './components/NavMenu';
-
 import './components/WebviewsWrapper';
 import './components/AppRoot';
 
