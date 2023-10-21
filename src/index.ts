@@ -58,6 +58,10 @@ const initApp = async () => {
     event.reply('ipc-open-contextmenu', arg)
   });
 
+  ipcMain.on('ipc-hide-context-menu', async (event, args) => {
+    console.log('ipc-hide-context-menu')
+    event.reply('ipc-hide-context-menu',args)
+  });
 
   ipcMain.on('ipc-page-favicon-updated', async (event, arg) => {
     //console.log('ipc-page-favicon-updated : ', arg);
@@ -85,7 +89,7 @@ const initApp = async () => {
   });
 
   ipcMain.on('ipc-open-add-bookmark', async (event, arg) => {
-    //console.log('ipc-open-add-bookmark : ', arg);
+    console.log('ipc-open-add-bookmark : ', bookmarkWindows);
     if(!bookmarkWindows){
 
       bookmarkWindows = new BrowserWindow({

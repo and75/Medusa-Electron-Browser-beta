@@ -11,7 +11,7 @@ export class AddressBar extends HTMLElement {
    formInput: HTMLInputElement
    webview: WebviewTag | null
    addrLabelIcon: HTMLImageElement
-   actionType:string;
+   actionType: string;
 
    get url() {
       return this.getAttribute('url');
@@ -27,6 +27,7 @@ export class AddressBar extends HTMLElement {
       super();
 
       this.webview = null;
+      this.actionType = 'no-action';
 
       // Add a shadow root
       this.attachShadow({ mode: "open" }); // sets and returns 'this.shadowRoot'
@@ -42,24 +43,14 @@ export class AddressBar extends HTMLElement {
       const formAction = document.createElement('form');
       formAction.setAttribute('class', 'navigate-to-form');
       formAction.setAttribute('action', '#');
-      formAction.onsubmit = this._goTo.bind(this);
+      formAction.addEventListener('submit', this._goTo.bind(this))
 
       // Add form input
       const formInput = formAction.appendChild(document.createElement('input'));
       formInput.setAttribute('type', 'text');
       formInput.value = this.url;
       this.formInput = formInput;
-      this.formInput.addEventListener("input", () => {
-         // Create and dispatch/trigger an event on the fly
-         // Note: Optionally, we've also leveraged the "function expression" (instead of the "arrow function expression") so "this" will represent the element
-         this.dispatchEvent(
-            new CustomEvent("awesome", {
-               bubbles: true,
-               detail: { text: () => this.formInput.value },
-            }),
-         );
-      });
-      this.formInput.onsubmit = this._goTo.bind(this);
+      this.formInput.addEventListener("input", this._dispatchEventInputevent.bind(this));
 
       // Add Action menu
       const actionMenu = document.createElement("ul");
@@ -70,10 +61,7 @@ export class AddressBar extends HTMLElement {
       const bookmarkIcon = document.createElement('img');
       bookmarkIcon.setAttribute('src', StarSvg);
       bookmarkIcon.setAttribute('title', 'Add this tab to favorites');
-      bookmarkIcon.addEventListener('click',()=>{
-         console.log('ping');
-         this.webview.send('ping')
-      })
+      bookmark.addEventListener('click', this._webviewSendRequestWebviewInfo.bind(this))
       bookmark.appendChild(bookmarkIcon);
       this.bookmark = bookmark;
 
@@ -152,76 +140,91 @@ export class AddressBar extends HTMLElement {
       this.shadowRoot.append(style, addrLabel, formAction, actionMenu);
    }
 
-   private _handleStatus(str:string):string{
-      if (str.length >= 4 && (str.startsWith('http://') ||  str.startsWith('https://'))) {
-         if (str.startsWith('http://')) {
-            this.addrLabelIcon.setAttribute('src', LockOpenSvg);
-         }
-         if (str.startsWith('https://')) {
-            this.addrLabelIcon.setAttribute('src', LockSvg);
-         }
-         return 'goTo';
-      } else {
-         this.addrLabelIcon.setAttribute('src', findSvg);
-         return 'search';
-      }
+   _webviewSendRequestWebviewInfo(e:Event){
+      console.log(this.webview)
+      this.webview.send('ipc-request-webview-info');
    }
 
-   private _ctrlStatus(e: CustomEvent) {
+   _dispatchEventInputevent(e: Event) {
+      this._log({ ref:'_dispatchEventInputevent', message: this.formInput.value, color: '#cc5' }),
+      // Create and dispatch/trigger an event on the fly
+      // Note: Optionally, we've also leveraged the "function expression" (instead of the "arrow function expression") so "this" will represent the element
+      this.dispatchEvent(
+         new CustomEvent("inputevent", {
+            bubbles: true,
+            detail: { text: () => this.formInput.value },
+         }),
+      );
+   }
+
+   private _handleStatus(str: string): string {
+      if(str.length <= 3){
+         this.addrLabelIcon.setAttribute('src', findSvg);
+      } else if(str.length >= 4){
+         if (str.startsWith('http://') || str.startsWith('https://')) {
+            if (str.startsWith('http://')) {
+               this.addrLabelIcon.setAttribute('src', LockOpenSvg);
+            }
+            if (str.startsWith('https://')) {
+               this.addrLabelIcon.setAttribute('src', LockSvg);
+            }
+            this.actionType = 'goTo';
+         } else {
+            this.addrLabelIcon.setAttribute('src', findSvg);
+            this.actionType = 'search';
+         }
+      }
+      return this.actionType;
+   }
+
+   private _handleInputEvent(e: CustomEvent) {
       const str = e.detail.text();
-      return this._handleStatus(str);
+      this._handleStatus(str);
    }
 
    private _goTo(e: Event) {
 
-      function escapeRegExp(string:string) {
-         return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
-       }
-       
-       function replaceAll(str:string, find:string, replace:string) {
-         return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
-       }
-
       e.preventDefault;
-
-      //console.log('AddressBar _goTo', this.actionType , this.formInput.value);
 
       this.webview.stop();
 
-      if(this.actionType=="goTo"){
+      function escapeRegExp(string: string) {
+         return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+      }
+
+      function replaceAll(str: string, find: string, replace: string) {
+         return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
+      }
+
+      if (this.actionType == "goTo") {
          this.webview.loadURL(this.formInput.value);
-      } else {
+      } else if(this.actionType == "search") {
+         //format input value to search string compatible
          const query = replaceAll(this.formInput.value, ' ', '+');
+         //set the url 
          const url = `https://www.google.com/search?q=${query}&sca_esv=572214004&source=hp`;
+         //open new page
          this.webview.loadURL(encodeURI(url));
       }
 
    }
 
    _setWebView(webview: WebviewTag) {
-
-      function handlerMessagesFromApp(event:IpcMessageEvent){
-         if(event.channel=='pong'){
-            console.log(event.channel, event.args[0],  this.webview.id);
+      function handlerMessagesFromApp(event: IpcMessageEvent) {
+         if (event.channel == 'pong') {
+            console.log(event.channel, event.args[0], this.webview.id);
             window.electron.ipcRenderer.sendMessage('ipc-open-add-bookmark', event.args[0]);
          }
       }
-
-      if(this.webview)
+      if (this.webview)
          this.webview.removeEventListener('ipc-message', handlerMessagesFromApp.bind(this));
-
       this.webview = webview;
       this.webview.addEventListener('ipc-message', handlerMessagesFromApp.bind(this))
-      this._setUrl(webview.getURL());
-
    }
 
-   private _setUrl(value: string) {
-      //console.log('AddressBar _setUrl', value)
-      this.url = value;
+   _setUrl(value: string) {
+      if (this.url !== value) this.url = value;
    }
-
-   // _reset() { }
 
    private _log(options: LogElement) {
       options.className = this.constructor.name;
@@ -230,7 +233,7 @@ export class AddressBar extends HTMLElement {
 
    connectedCallback() {
       this._log({ message: 'Is connected!', color: '#cc5' })
-      this.addEventListener("awesome", this._ctrlStatus.bind(this));
+      this.addEventListener("inputevent", this._handleInputEvent.bind(this));
    }
 
    // disconnectedCallback() { }

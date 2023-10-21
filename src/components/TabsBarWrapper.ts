@@ -265,9 +265,9 @@ export class TabsGroupWrapper extends HTMLElement {
         }
     }
 
-    private _setFavIcon(arg: any) {
-        let find:TabElement;
-        return (find == this.tabs.get(arg.tabID)) ? find._setFavIcon(arg.favicons[0]) :null;
+     _setFavIcon(arg: any) {
+        const find = this.tabs.get(arg.tabID) as TabElement | null
+        return (find) ? find._setFavIcon(arg.favicons[0]) : null;
     }
 
     private _setTabTitle(arg: any) {

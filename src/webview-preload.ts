@@ -19,7 +19,7 @@ const electronHandler = {
     },
     removeListener(channel: Channels, listener: any) {
       ipcRenderer.removeListener(channel, listener);
-    }
+    },
   }
 };
 
@@ -33,21 +33,27 @@ contextBridge.exposeInMainWorld('electron', electronHandler);
 document.addEventListener('dragover', event => event.preventDefault());
 document.addEventListener('drop', event => event.preventDefault());
 
+
 document.addEventListener('DOMContentLoaded', () => {
 
   console.log('👋 This message is being logged by "webview-preload.ts", included via webpack');
   console.log('👋 window DOMContentLoaded', document.readyState);
   //console.log('DOMContentLoaded', document)
 
-  ipcRenderer.on('ping', (args) => {
+  ipcRenderer.on('ipc-request-webview-info', (args) => {
     const data = {
       title: document.title,
       url: document.URL,
-      description: document.querySelector('meta[name="description"]').getAttribute('content'),
+      description: (document.querySelector('meta[name="description"]')) ? document.querySelector('meta[name="description"]').getAttribute('content'): null,
       body: document.querySelector('body').innerHTML
     }
     ipcRenderer.sendToHost('pong', data)
-  })
+  });
+
+  document.addEventListener('click', event => {
+    console.log('stocazzo');
+    ipcRenderer.sendToHost('ipc-hide-contextmenu');
+  });
 
   document.querySelectorAll('a[target="_blank"]').forEach(item => {
     item.addEventListener('click', event => {
@@ -66,5 +72,5 @@ document.addEventListener("DOMContentLoaded", function (event) {
   console.log('👋 Document DOMContentLoaded');
 });
 window.addEventListener('beforeunload', function(event) {
-  ipcRenderer.removeAllListeners('ping');
+  ipcRenderer.removeAllListeners('ipc-request-webview-info');
 });

@@ -1,5 +1,5 @@
   
-  :root {
+:root {
   /**
    * The height of the title bar area on Win32 platforms
    * If changed, update titleBarHeight in 'app/src/ui/dialog/dialog.tsx'
@@ -24,7 +24,11 @@
 
   --default-spacing:10px;
   --brd-radius-round: 50%;
-  }
+
+  --box-sizing:border-box;
+
+  --transition-all: all 0.2s ease-out;
+}
 
 /*
   1. Use a more-intuitive box-sizing model.

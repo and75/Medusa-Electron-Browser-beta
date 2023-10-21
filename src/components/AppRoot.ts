@@ -48,9 +48,6 @@ export class AppRoot extends HTMLElement{
           grid-area: webview;
           justify-self: stretch;     
         }
-        context-menu[visible]{
-          display:block!important;
-        } 
         `;
     this.shadowRoot.append(style, new TabsGroupWrapper(), new WebviewsWrapper(), new ContextMenu());
     //this.shadowRoot.append(style);

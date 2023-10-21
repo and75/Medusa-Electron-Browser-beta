@@ -102,6 +102,7 @@ export interface AddressBarElement extends HTMLElement{
     formAction:HTMLFormElement
     formInput:HTMLInputElement
     _setWebView:any;
+    _setUrl:(url:string)=>void
 }
 
 export interface PanelMenuElement extends HTMLElement{

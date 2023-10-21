@@ -213,6 +213,7 @@ export class Tab extends HTMLElement {
     }
 
     _setFavIcon(src: string) {
+        this.logger.logAction('_setFavIcon', src, this.tabIcon);
         if (this.tabIcon !== src) {
             this.tabIcon = src;
             this.favIcon.src = src;

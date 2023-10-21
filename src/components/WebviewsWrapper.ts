@@ -6,7 +6,7 @@
  * @copyright Andrea Porcella / Bellville-system 2023
  */
 
-import { WebviewTag } from "electron";
+import { ContextMenuEvent, WebContents, WebContentsDidStartNavigationEventParams, WebviewTag } from "electron";
 import { NavMenuElement, AddressBarElement, PanelMenuElement, TabElement, TabStatus } from "../model";
 import { NavMenu } from "./NavMenu";
 import { AddressBar } from "./AddressBar";
@@ -235,6 +235,11 @@ export class WebviewsWrapper extends HTMLElement {
 
     _registerHandler(el: HTMLElement | WebviewTag) {
         const handlers = [
+            
+            {
+                name: 'ipc-message',
+                fn: this._closeContextMenu.bind(this)
+            },
             {
                 name: 'dom-ready',
                 fn: this._domReady.bind(this)
@@ -262,6 +267,14 @@ export class WebviewsWrapper extends HTMLElement {
             {
                 name: 'content-bounds-updated',
                 fn: this._contentBoundsUpdated.bind(this)
+            },
+            {
+                name: 'did-navigate-in-page',
+                fn: this._didNavigateInPage.bind(this)
+            },
+            {
+                name: 'context-menu',
+                fn: this._contextMenu.bind(this)
             }
         ];
 
@@ -274,6 +287,22 @@ export class WebviewsWrapper extends HTMLElement {
 
     }
 
+    _closeContextMenu(e:ContextMenuEvent){
+        this.logger.logIpc('_closeContextMenu', e);
+        window.electron.ipcRenderer.sendMessage('ipc-hide-context-menu')
+    }
+
+    _contextMenu(e:ContextMenuEvent){
+        this.logger.logAction('_contextMenu', e);
+        const { x, y } = e.params;
+        window.electron.ipcRenderer.sendMessage('ipc-open-contextmenu', { clientX:x, clientY:y, type: 'webview', params:e.params })
+    }
+
+    _didNavigateInPage(e: WebContentsDidStartNavigationEventParams) {
+        this.logger.logAction('_didNavigateInPage', e);
+        this.addressBar._setUrl(e.url)
+    }
+    
     _contentBoundsUpdated(e: Event) {
         e.preventDefault();
     }
@@ -336,7 +365,7 @@ export class WebviewsWrapper extends HTMLElement {
         const favicons = e.favicons as any
         const tabID = target.getAttribute('tab-id');
         const args = { favicons, tabID };
-        //this.logger.logAction('_updateTabFavIcon', args)
+        this.logger.logAction('_updateTabFavIcon', args)
         window.electron.ipcRenderer.sendMessage('ipc-page-favicon-updated', args)
     }
 
