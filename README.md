@@ -85,7 +85,3 @@ The application follows Electron's best security practices:
 
 This project is released under the **MIT License**.
 
----
-
-If you have suggestions or want to contribute, feel free to open an issue or pull request! 😊
-
