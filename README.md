@@ -10,6 +10,7 @@ A minimal web browser developed with **Electron JS**, focusing on **security**, 
 - 📦 **Minimal dependencies**: Avoids unnecessary packages.
 - 🎨 **Simplicity**: Pure CSS UI.
 - ⚡ **Lightweight and fast**: Designed for a smooth experience without extra overhead.
+- 🏗 **Custom Web Components**: Implements JavaScript Custom Elements for modular and reusable UI components, located in the [`src/components/`](https://github.com/and75/Medusa-Electron-Browser-beta/tree/main/src/components) folder.
 
 ## 🚀 Installation
 
@@ -47,16 +48,30 @@ npm run build
 - **`src/`**: Contains the main source code of the application.
   - **`main.ts`**: Manages Electron's main process, creates the main window, and sets security options.
   - **`renderer.ts`**: Manages the rendering process, including UI and browser logic.
+  - **`components/`**: Contains custom JavaScript web components used in the application.
 - **Configuration Files**:
   - **`package.json`**: Defines project dependencies and scripts for building and running.
   - **`tsconfig.json`**: Configures TypeScript compiler options.
-  - **`webpack.main.config.ts` & `webpack.renderer.config.ts`**: Configure Webpack for bundling main and renderer processes.
+  - **`webpack.main.config.ts`** & **`webpack.renderer.config.ts`**: Configure Webpack for bundling main and renderer processes.
 
 ### Technologies Used
 
 - **Electron**: Framework for building cross-platform desktop applications with JavaScript, HTML, and CSS.
 - **TypeScript**: Ensures static typing and better maintainability.
 - **Webpack**: Manages code bundling for efficient distribution.
+- **JavaScript Custom Elements**: Enables the creation of reusable and encapsulated UI components.
+
+### Custom Web Components Overview
+
+The Medusa Electron Browser uses JavaScript Custom Elements to modularize and encapsulate UI functionality:
+
+- **`AddressBar`**: Manages the URL input field where users can enter web addresses. Handles user input, navigation events, and displays the current URL.
+- **`NavigationButtons`**: Provides back, forward, refresh, and home buttons for browser navigation, triggering the corresponding actions.
+- **`Tab`**: Represents an individual browser tab, displaying the title and favicon of the webpage, and managing the loading state.
+- **`TabBar`**: Contains and manages multiple `Tab` components, allowing users to switch between open tabs and add new ones.
+- **`BrowserWindow`**: Encapsulates the webview element that renders web content, handling loading events, errors, and communication between the web content and the rest of the application.
+
+These components communicate via custom events and shared state objects to ensure a seamless browsing experience.
 
 ### Security
 
@@ -73,7 +88,4 @@ This project is released under the **MIT License**.
 ---
 
 If you have suggestions or want to contribute, feel free to open an issue or pull request! 😊
-
-
-
 
