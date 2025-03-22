@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     strategy:
       matrix:
@@ -28,6 +28,11 @@ jobs:
     - name: Build Electron app
       run: npm run make
 
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: medusa_browser_beta
+        path: out/make/*
 
     - name: Deploy to GitHub Releases
       uses: softprops/action-gh-release@v1
