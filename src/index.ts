@@ -212,8 +212,9 @@ app.on('ready', () => {
   session
     .fromPartition('medusabwebview')
     .setPermissionRequestHandler((webContents, permission, callback) => {
-      const parsedUrl = new URL(webContents.getURL())
 
+      const parsedUrl = new URL(webContents.getURL())
+      
       if (permission === 'notifications') {
         // Approves the permissions request
         callback(true)
