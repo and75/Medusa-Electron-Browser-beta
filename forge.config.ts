@@ -58,8 +58,8 @@ const config: ForgeConfig = {
       "name": "@electron-forge/publisher-github",
       "config": {
         "repository": {
-          "owner": "abulka",
-          "name": "electron-actions1"
+          "owner": "and75",
+          "name": "/Medusa-Electron-Browser-beta"
         },
         "draft": false
       }
