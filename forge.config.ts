@@ -53,6 +53,18 @@ const config: ForgeConfig = {
       },
     }),
   ],
+  "publishers": [
+    {
+      "name": "@electron-forge/publisher-github",
+      "config": {
+        "repository": {
+          "owner": "abulka",
+          "name": "electron-actions1"
+        },
+        "draft": false
+      }
+    }
+  ]
 };
 
 export default config;
