@@ -293,7 +293,7 @@ app.on('web-contents-created', (event, contents) => {
   })
 
   contents.on('did-attach-webview', (event, webContents) => {
-    //console.log('Main did-attach-webview', webContents)
+    console.log('Main did-attach-webview', webContents)
   })
 
 })
