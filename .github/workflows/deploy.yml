@@ -34,12 +34,6 @@ jobs:
         TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
         echo "TAG=$TAG" >> $GITHUB_ENV
 
-    - name: Upload Artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: medusa_browser_beta
-        path: out/make/*
-
     - name: Deploy to GitHub Releases
       uses: softprops/action-gh-release@v1
       with:
