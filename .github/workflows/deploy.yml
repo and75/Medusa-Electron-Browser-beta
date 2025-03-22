@@ -2,8 +2,8 @@ name: Deploy Electron App
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - '*'
 
 jobs:
   build:
@@ -28,24 +28,10 @@ jobs:
     - name: Build Electron app
       run: npm run make
 
-    - name: Get the latest tag
-      id: get_tag
-      shell: pwsh
-      run: |
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git config --global user.name "github-actions[bot]"
-        $tag = git describe --tags --abbrev=0
-        if (-not $tag) {
-          $tag = "v1.0.0"
-          git tag $tag
-          git push https://x-access-token:${{ secrets.DEPLOYTOKEN }}@github.com/and75/Medusa-Electron-Browser-beta.git $tag
-        }
-        echo "TAG=$tag" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
     - name: Deploy to GitHub Releases
       uses: softprops/action-gh-release@v1
       with:
         files: out/make/*
-        tag_name: ${{ env.TAG }}
+        tag_name: ${{ github.ref }}
       env:
         GITHUB_TOKEN: ${{ secrets.DEPLOYTOKEN }}
