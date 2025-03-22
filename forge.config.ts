@@ -59,7 +59,7 @@ const config: ForgeConfig = {
       "config": {
         "repository": {
           "owner": "and75",
-          "name": "/Medusa-Electron-Browser-beta"
+          "name": "Medusa-Electron-Browser-beta"
         },
         "draft": false
       }
