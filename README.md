@@ -5,12 +5,11 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-4.4-blue?style=flat&logo=typescript)
 ![Vanilla JS](https://img.shields.io/badge/Vanilla%20JS-ES6-blue?style=flat&logo=javascript)
 
-&#x20;&#x20;
-&#x20;&#x20;
+
+A minimal web browser developed with **Electron JS**, focusing on **security**, **lightweight design**, and **simplicity**. The project follows **Electron JS security standards**, uses **the minimal necessary dependencies**, and is written in **Vanilla JavaScript and CSS**.
 
 ![image](https://github.com/user-attachments/assets/685e5293-95ac-4214-8019-f12b72f1cac7)
 
-A minimal web browser developed with **Electron JS**, focusing on **security**, **lightweight design**, and **simplicity**. The project follows **Electron JS security standards**, uses **the minimal necessary dependencies**, and is written in **Vanilla JavaScript and CSS**.
 
 ## 📌 Features
 
