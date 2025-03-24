@@ -1,9 +1,13 @@
 {
   "name": "medusa-browser-beta",
-  "productName": "Medusa browser beta",
+  "productName": "Medusa Browser Beta",
   "version": "1.0.0",
-  "description": "My Electron application description",
+  "description": "Medusa Browser Beta is an Electron-based browser designed to provide a fast and secure browsing experience. It includes advanced features such as tab management, private browsing, and extension support.",
   "main": ".webpack/main",
+  "author": {
+    "name": "Andrea Porcella",
+    "email": "andreaporcella@gmail.com"
+  },
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
@@ -12,10 +16,7 @@
     "lint": "eslint --ext .ts,.tsx ."
   },
   "keywords": [],
-  "author": {
-    "name": "And75",
-    "email": "andreaporcella@gmail.com"
-  },
+
   "license": "MIT",
   "devDependencies": {
     "@electron-forge/cli": "^6.2.1",

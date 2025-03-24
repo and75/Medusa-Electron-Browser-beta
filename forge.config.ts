@@ -1,23 +1,38 @@
 import type { ForgeConfig } from '@electron-forge/shared-types';
-import { MakerSquirrel } from '@electron-forge/maker-squirrel';
-import { MakerZIP } from '@electron-forge/maker-zip';
-import { MakerDeb } from '@electron-forge/maker-deb';
-import { MakerRpm } from '@electron-forge/maker-rpm';
+// import { MakerSquirrel } from '@electron-forge/maker-squirrel';
+// import { MakerZIP } from '@electron-forge/maker-zip';
+// import { MakerDeb } from '@electron-forge/maker-deb';
+// import { MakerRpm } from '@electron-forge/maker-rpm';
 import { WebpackPlugin } from '@electron-forge/plugin-webpack';
 import path from 'path';
 import { mainConfig } from './webpack.main.config';
 import { rendererConfig } from './webpack.renderer.config';
+import {platform, arch } from 'os'; // Import the 'arch' property from the 'os' module
+import packageJSON from './package.json';
 
 const config: ForgeConfig = {
   packagerConfig: {
+    name: "Sairen Ai audio solutions",
+    appBundleId: "com.sairen.audiosolution",
+    icon: "./icon/icon",
     asar: true,
-    icon: path.join(process.cwd(), "icon"),
     extraResource: [
       path.join(process.cwd(), "icon"),
     ],
   },
   rebuildConfig: {},
-  makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin']), new MakerRpm({}), new MakerDeb({})],
+  makers: [
+    {
+      name: '@electron-forge/maker-squirrel',
+      config: {
+        //name: "sairen_ai_audio_solution",
+        setupExe: `${packageJSON.productName}-${packageJSON.version}-${platform}-${arch}.exe`,
+        // The ICO file to use as the icon for the generated Setup.exe
+        setupIcon: './icon/icon.ico',
+        //loadingGif: './icon/installer.gif',
+      }
+    }
+  ],
   plugins: [
     new WebpackPlugin({
       mainConfig,
