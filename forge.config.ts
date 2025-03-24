@@ -10,20 +10,14 @@ import { rendererConfig } from './webpack.renderer.config';
 
 const config: ForgeConfig = {
   packagerConfig: {
-    name: "Sairen Ai audio solutions",
-    appBundleId: "com.sairen.audiosolution",
-    icon: "./icon/icon",
     asar: true,
+    icon: path.join(process.cwd(), "icon"),
     extraResource: [
       path.join(process.cwd(), "icon"),
     ],
   },
   rebuildConfig: {},
-  makers: [
-    new MakerSquirrel({}), 
-    new MakerZIP({}, ['darwin']), 
-    new MakerRpm({}), 
-    new MakerDeb({})],
+  makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin']), new MakerRpm({}), new MakerDeb({})],
   plugins: [
     new WebpackPlugin({
       mainConfig,
