@@ -7,6 +7,7 @@ import { WebpackPlugin } from '@electron-forge/plugin-webpack';
 import path from 'path';
 import { mainConfig } from './webpack.main.config';
 import { rendererConfig } from './webpack.renderer.config';
+const appVersion = process.env.APP_VERSION || require("./package.json").version;
 
 const config: ForgeConfig = {
   packagerConfig: {
@@ -59,9 +60,12 @@ const config: ForgeConfig = {
       "config": {
         "repository": {
           "owner": "and75",
-          "name": "Medusa-Electron-Browser-beta-v1"
+          "name": "Medusa-Electron-Browser-beta"
         },
-        "draft": false
+        "draft": false,
+        prerelease: appVersion.includes("beta"),
+        tag: `v${appVersion}`,
+        releaseName: `Medusa Browser v${appVersion}`,
       }
     }
   ]
