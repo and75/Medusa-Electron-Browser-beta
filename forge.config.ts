@@ -7,7 +7,7 @@ import { WebpackPlugin } from '@electron-forge/plugin-webpack';
 import path from 'path';
 import { mainConfig } from './webpack.main.config';
 import { rendererConfig } from './webpack.renderer.config';
-const appVersion = process.env.APP_VERSION || require("./package.json").version;
+const appVersion = process.env.APP_VERSION || '1.0.1';
 
 const config: ForgeConfig = {
   packagerConfig: {
