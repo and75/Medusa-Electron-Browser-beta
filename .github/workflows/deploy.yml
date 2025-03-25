@@ -1,34 +1,45 @@
+# This GitHub Actions workflow is designed to deploy an Electron app for Windows.
+# The workflow is triggered when a new tag is pushed to the repository.
+
+# Workflow name
 name: Deploy Electron App (Windows)
 
+# Trigger the workflow on push events to tags
 on:
   push:
     tags:
-      - '*'  # Il workflow parte quando viene creato un tag
+      - '*'  # The workflow starts when a tag is created
 
 jobs:
   build:
-    runs-on: windows-latest  # Eseguito su Windows
+    # The job runs on the latest Windows environment
+    runs-on: windows-latest
 
     strategy:
+      # Define a matrix to specify the Node.js version to use
       matrix:
-        node-version: [16.x]
+        node-version: [20.x]
 
     steps:
+      # Step to checkout the repository
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      # Step to set up Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
 
+      # Step to get the version from the tag and set the OS
       - name: Get version from tag and OS
         shell: pwsh
         run: |
-          $version = $env:GITHUB_REF_NAME -replace 'v', ''   # Rimuove la "v" dal tag (es. "v1.2.3" → "1.2.3")
-          $os = "windows"                                    # Aggiunge l'OS
+          $version = $env:GITHUB_REF_NAME -replace 'refs/tags/', ''   # Remove the "refs/tags/" from the tag (e.g., "refs/tags/v1.2.3" → "v1.2.3")
+          $os = "windows"                                             # Add the OS
           echo "APP_VERSION=$version-$os" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
 
+      # Step to update the version in package.json
       - name: Update package.json version
         shell: pwsh
         run: |
@@ -36,9 +47,11 @@ jobs:
           $packageJson.version = "${{ env.APP_VERSION }}"
           $packageJson | ConvertTo-Json -Depth 10 | Set-Content package.json -Encoding utf8
 
+      # Step to install dependencies
       - name: Install dependencies
-        run: npm ci  # Installazione pulita
+        run: npm ci  # Clean installation
 
+      # Step to publish the release using electron-forge
       - name: Publish Release
         env:
           GITHUB_TOKEN: ${{ secrets.DEPLOYTOKEN }}
