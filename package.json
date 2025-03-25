@@ -1,7 +1,7 @@
 {
   "name": "medusa-browser-beta",
   "productName": "Medusa Browser Beta",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Medusa Browser Beta is an Electron-based browser designed to provide a fast and secure browsing experience. It includes advanced features such as tab management, private browsing, and extension support.",
   "main": ".webpack/main",
   "author": {
