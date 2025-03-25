@@ -32,11 +32,10 @@ jobs:
           node-version: ${{ matrix.node-version }}
 
       # Step to get the version from the tag and set the OS
-      - name: Get version from tag and set the OS
+      - name: Get version from tag
         shell: pwsh
         run: |
           $version = $env:GITHUB_REF_NAME -replace 'refs/tags/v', '' -replace '-windows', ''  # Remove the "refs/tags/v" and "-windows" from the tag (e.g., "refs/tags/v1.2.3-windows" → "1.2.3")
-          $os = "windows"  # Add the OS
           echo "APP_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
 
       # Step to update the version in package.json

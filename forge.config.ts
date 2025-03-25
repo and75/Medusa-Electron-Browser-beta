@@ -10,6 +10,7 @@ import { mainConfig } from './webpack.main.config';
 import { rendererConfig } from './webpack.renderer.config';
 
 const appVersion = process.env.APP_VERSION || '1.0.1';
+const os = process.env.OS || 'unknown';
 
 const config: ForgeConfig = {
   packagerConfig: {
@@ -72,8 +73,8 @@ const config: ForgeConfig = {
         },
         "draft": false,
         "prerelease": appVersion.includes("beta"),
-        "tag": `v${appVersion}`,
-        "releaseName": `Medusa Browser v${appVersion}`,
+        "tag": `v${appVersion}-${os}`,
+        "releaseName": `Medusa Browser v${appVersion} (${os})`,
       }
     }
   ]
