@@ -3,7 +3,7 @@ name: Deploy Electron App (Windows)
 on:
   push:
     tags:
-      - '*'  # Il workflow parte solo quando viene creato un tag
+      - '*'  # Il workflow parte quando viene creato un tag
 
 jobs:
   build:
@@ -11,7 +11,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [16.x]  # Usa Node.js 16
+        node-version: [16.x]
 
     steps:
       - name: Checkout Repository
@@ -22,10 +22,12 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Get version from tag
-        shell: pwsh  # Usa PowerShell invece di Bash
-        run: echo "APP_VERSION=$($env:GITHUB_REF_NAME -replace 'v', '')" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
-      # Questo rimuove la "v" dal tag (es. "v1.2.3" → "1.2.3") e lo salva come variabile d'ambiente
+      - name: Get version from tag and OS
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME -replace 'v', ''   # Rimuove la "v" dal tag (es. "v1.2.3" → "1.2.3")
+          $os = "windows"                                    # Aggiunge l'OS
+          echo "APP_VERSION=$version-$os" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
 
       - name: Update package.json version
         shell: pwsh
@@ -39,5 +41,5 @@ jobs:
 
       - name: Publish Release
         env:
-          GITHUB_TOKEN: ${{ secrets.DEPLOYTOKEN }}  # Usa DEPLOYTOKEN invece di GITHUB_TOKEN
+          GITHUB_TOKEN: ${{ secrets.DEPLOYTOKEN }}
         run: npx electron-forge publish --verbose
