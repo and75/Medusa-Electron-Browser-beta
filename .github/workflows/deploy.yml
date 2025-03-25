@@ -1,4 +1,4 @@
-name: Deploy Electron App (Windows)
+name: Deploy Electron App
 
 on:
   push:
@@ -7,11 +7,12 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest  # Eseguito su Windows
+    runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
-        node-version: [16.x]
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        node-version: [20.x]  # Usa Node.js 20
 
     steps:
       - name: Checkout Repository
@@ -25,9 +26,17 @@ jobs:
       - name: Get version from tag and OS
         shell: pwsh
         run: |
-          $version = $env:GITHUB_REF_NAME -replace 'v', ''   # Rimuove la "v" dal tag (es. "v1.2.3" → "1.2.3")
-          $os = "windows"                                    # Aggiunge l'OS
+          $version = $env:GITHUB_REF_NAME -replace 'v', ''
+          $os = "${{ matrix.os }}" -replace '-latest', ''
           echo "APP_VERSION=$version-$os" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
+        if: runner.os == 'Windows'
+
+      - name: Get version from tag and OS (Linux/macOS)
+        run: |
+          version=${GITHUB_REF_NAME#refs/tags/v}
+          os=$(echo "${{ matrix.os }}" | sed 's/-latest//')
+          echo "APP_VERSION=$version-$os" >> $GITHUB_ENV
+        if: runner.os != 'Windows'
 
       - name: Update package.json version
         shell: pwsh
@@ -35,9 +44,18 @@ jobs:
           $packageJson = Get-Content package.json | ConvertFrom-Json
           $packageJson.version = "${{ env.APP_VERSION }}"
           $packageJson | ConvertTo-Json -Depth 10 | Set-Content package.json -Encoding utf8
+        if: runner.os == 'Windows'
+
+      - name: Update package.json version (Linux/macOS)
+        run: |
+          jq '.version = "${{ env.APP_VERSION }}"' package.json > temp.json && mv temp.json package.json
+        if: runner.os != 'Windows'
 
       - name: Install dependencies
         run: npm ci  # Installazione pulita
+
+      - name: Build Electron App
+        run: npm run make  # Genera i pacchetti per ogni OS
 
       - name: Publish Release
         env:
