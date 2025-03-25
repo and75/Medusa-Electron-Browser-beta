@@ -65,8 +65,8 @@ const config: ForgeConfig = {
         },
         "draft": false,
         prerelease: appVersion.includes("beta"),
-        tag: `v1.1.0`,
-        releaseName: `Medusa Browser v1.1.0`,
+        tag: `v${appVersion}`,
+        releaseName: `Medusa Browser v${appVersion}`,
       }
     }
   ]
