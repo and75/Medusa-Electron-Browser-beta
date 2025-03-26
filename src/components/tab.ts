@@ -1,4 +1,13 @@
 
+
+/**
+ * Medusa browser beta
+ * @component Tab
+ * @description Add tab component
+ * @author Andrea Porcella
+ * @copyright Andrea Porcella / Bellville-system 2023
+ */
+
 import { xmarkSvg, arrowRotateRight, MedusaLogo } from "./Img";
 import { TabElement, HistoryElement, TabStatus } from '../model';
 import { LoggerFactory,LoggerFactoryType } from "./../logger";

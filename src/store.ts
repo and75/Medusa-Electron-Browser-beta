@@ -1,3 +1,10 @@
+/**
+ * Medusa browser beta
+ * @description Store
+ * @author Andrea Porcella
+ * @copyright Andrea Porcella / Bellville-system 2023
+ */
+
 import { TabElement, TabsGroupElement, DATATabsType, DATASettingsType } from './model';
 
 const getDateTime = () => {

@@ -1,4 +1,12 @@
 
+/**
+ * Medusa browser beta
+ * @component Panel
+ * @description Add panel component
+ * @author Andrea Porcella
+ * @copyright Andrea Porcella / Bellville-system 2023
+ */
+
 import { WebviewTag } from "electron";
 import { bookmarkSvg, clipboardSvg, clockRotateLeft, slidersSvg, xmarkSvg, findSvg } from "./Img";
 import { LogElement } from "./../model";

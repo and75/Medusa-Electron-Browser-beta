@@ -1,3 +1,11 @@
+/**
+ * Medusa browser beta
+ * @component NavMenu
+ * @description Add navigation menu
+ * @author Andrea Porcella
+ * @copyright Andrea Porcella / Bellville-system 2023
+ */
+
 import { WebviewTag } from "electron";
 import { arrowLeft, arrowRight, arrowRotate } from "./Img";
 import { LogElement } from "./../model";

@@ -1,4 +1,12 @@
 
+/**
+ * Medusa browser beta
+ * @component PanelMenu
+ * @description Add panel menu to Panel component
+ * @author Andrea Porcella
+ * @copyright Andrea Porcella / Bellville-system 2023
+ */
+
 import { WebviewTag } from "electron";
 import { bookmarkSvg, clipboardSvg, clockRotateLeft, slidersSvg, DevToolsSvg, TabsGroupSvg } from "./Img";
 import { LogElement } from "./../model";

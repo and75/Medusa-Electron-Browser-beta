@@ -1,3 +1,10 @@
+/**
+* Medusa browser beta
+* @description Electron render process
+* @author Andrea Porcella
+* @copyright Andrea Porcella / Bellville-system 2023
+*/
+
 //Import app elements
 import './index.css';
 import './components/ContextMenu';

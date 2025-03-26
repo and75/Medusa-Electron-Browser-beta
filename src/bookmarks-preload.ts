@@ -1,5 +1,9 @@
-// Disable no-unused-vars, broken for spread args
-/* eslint no-unused-vars: off */
+/**
+* Medusa browser beta
+* @description Bookmarks preload process
+* @author Andrea Porcella
+* @copyright Andrea Porcella / Bellville-system 2023
+*/
 
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 export type Channels = string;
@@ -27,7 +31,6 @@ const electronHandler = {
     }
 };
 contextBridge.exposeInMainWorld('electron', electronHandler);
-
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('👋 Document DOMContentLoaded', document.readyState);

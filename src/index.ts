@@ -28,6 +28,36 @@ if (require('electron-squirrel-startup')) {
   app.quit();
 }
 
+/**
+ * Initializes the Electron application by setting up the main application window
+ * and registering various IPC (Inter-Process Communication) event handlers.
+ *
+ * The function performs the following tasks:
+ * - Creates the main application window.
+ * - Registers IPC event listeners for handling various application-specific events,
+ *   such as managing tabs, context menus, bookmarks, and page loading states.
+ * - Handles the creation and management of a modal window for adding bookmarks.
+ *
+ * IPC Events:
+ * - `get-webviewpreload-path`: Returns the preload script path for the webview.
+ * - `ipc-get-default`: Retrieves the default tab groups from the store.
+ * - `ipc-set-active-tab`: Sets the active tab.
+ * - `ipc-close-tab`: Closes a tab.
+ * - `ipc-set-new-tab`: Creates a new tab with default settings.
+ * - `ipc-open-contextmenu`: Opens a context menu.
+ * - `ipc-hide-context-menu`: Hides the context menu.
+ * - `ipc-page-favicon-updated`: Updates the favicon of a page.
+ * - `ipc-update-tab-title`: Updates the title of a tab.
+ * - `ipc-page-loading-stop`: Indicates that a page has finished loading.
+ * - `ipc-page-loading-start`: Indicates that a page has started loading.
+ * - `ipc-open-sidepanel`: Opens the side panel.
+ * - `ipc-open-add-bookmark`: Opens a modal window for adding a bookmark.
+ *
+ * The function ensures that the bookmark modal window is created only once and
+ * properly cleans up resources when the window is closed.
+ *
+ * @async
+ */
 const initApp = async () => {
 
   createWindow();
@@ -199,13 +229,9 @@ app.on('activate', () => {
  */
 //17. Validate the sender of all IPC messages
 
-
-
 /**
  * Basic Security controllos for session.
  */
-
-
 app.on('ready', () => {
 
   //Handle session permission requests from remote content

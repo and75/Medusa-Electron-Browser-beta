@@ -1,3 +1,11 @@
+/**
+ * Medusa browser beta
+ * @component ContextMenu
+ * @description Add ContextMenu component
+ * @author Andrea Porcella
+ * @copyright Andrea Porcella / Bellville-system 2023
+ */
+
 import {
     DevToolsSvg,
     plusSvg,

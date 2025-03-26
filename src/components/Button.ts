@@ -1,6 +1,12 @@
 
-// import { xmarkSvg, arrowRotateRight, MedusaLogo } from "./Img";
-// import { TabElement, HistoryElement } from '../model';
+/**
+ * Medusa browser beta
+ * @component Button
+ * @description Add button component
+ * @author Andrea Porcella
+ * @copyright Andrea Porcella / Bellville-system 2023
+ */
+
 import { LoggerFactory,LoggerFactoryType } from "./../logger";
 
 export class MedButton extends HTMLElement {

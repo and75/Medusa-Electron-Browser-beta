@@ -1,5 +1,9 @@
-// Disable no-unused-vars, broken for spread args
-/* eslint no-unused-vars: off */
+/**
+ * Medusa browser beta
+ * @description Webview preload script
+ * @author Andrea Porcella
+ * @copyright Andrea Porcella / Bellville-system 2023
+ */
 
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 export type Channels = string;

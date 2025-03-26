@@ -1,11 +1,17 @@
 
+/**
+ * Medusa browser beta
+ * @component AppBookmarks
+ * @description Add bookmarks component
+ * @author Andrea Porcella
+ * @copyright Andrea Porcella / Bellville-system 2023
+ */
+
 import { bookmarkSvg, xmarkSvg} from "./Img";
 import { LogElement } from "./../model";
 import { appLog } from "./../core";
 
 export class AddBookmarks extends HTMLElement {
-
-
 
    content: HTMLDivElement | null;
 
@@ -79,9 +85,7 @@ export class AddBookmarks extends HTMLElement {
          color: var(--white);
          margin-top: 10px;
          background-color: var(--primary);
-      }
-
-        `;
+      }`;
 
       this.shadowRoot.append(style);
       this._init();
@@ -112,9 +116,7 @@ export class AddBookmarks extends HTMLElement {
                   <label></label>
                   <button type="submit">Confirm</button>
                </div>
-            </form>  
-
-             
+            </form>    
       `;
       this.shadowRoot.appendChild(tmpl.content.cloneNode(true));
    }

@@ -12,7 +12,6 @@ import { ContextMenu } from "./ContextMenu"
 import { LoggerFactory,LoggerFactoryType } from "./../logger";
 
 
-
 export class AppRoot extends HTMLElement{
 
   logger:LoggerFactoryType;
@@ -25,7 +24,6 @@ export class AppRoot extends HTMLElement{
     this.logger = LoggerFactory(this.constructor.name);
 
     this.attachShadow({ mode: "open" }); // sets and returns 'this.shadowRoot'
-
 
     // Create some CSS to apply to the shadow DOM
     const style = document.createElement("style");
@@ -50,7 +48,6 @@ export class AppRoot extends HTMLElement{
         }
         `;
     this.shadowRoot.append(style, new TabsGroupWrapper(), new WebviewsWrapper(), new ContextMenu());
-    //this.shadowRoot.append(style);
   }
 
 

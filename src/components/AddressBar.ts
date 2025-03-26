@@ -1,10 +1,17 @@
+/**
+ * Medusa browser beta
+ * @component AppRoot
+ * @description Root component of the app
+ * @author Andrea Porcella
+ * @copyright Andrea Porcella / Bellville-system 2023
+ */
+
 import { StarSvg, findSvg, LockOpenSvg, LockSvg } from "./Img";
 import { IpcMessageEvent, WebviewTag } from "electron";
 import { LogElement } from "./../model";
 import { appLog } from "./../core";
 
 export class AddressBar extends HTMLElement {
-
 
    bookmark: HTMLLIElement
    formAction: HTMLFormElement
@@ -134,7 +141,6 @@ export class AddressBar extends HTMLElement {
              :host ul.action-menu li:hover img{
                 opacity: 0.9;
              }
-
         `;
 
       this.shadowRoot.append(style, addrLabel, formAction, actionMenu);
